@@ -5,12 +5,12 @@
  *      Author: wangjingli
  */
 
+#include <stdio.h>
+#include <string.h>
+#include "board.h"
 #include "fsl_lcdc.h"
 #include "fsl_sctimer.h"
 #include "pin_mux.h"
-#include "board.h"
-#include <stdio.h>
-#include <string.h>
 
 /*******************************************************************************
  * Definitions
@@ -58,7 +58,8 @@ __attribute__((aligned(8)))
 #endif
 static uint8_t s_frameBuf1[IMG_HEIGHT][IMG_WIDTH / APP_PIXEL_PER_BYTE];
 
-static const uint32_t s_frameBufAddr[] = {(uint32_t)s_frameBuf0, (uint32_t)s_frameBuf1};
+static const uint32_t s_frameBufAddr[] = {(uint32_t)s_frameBuf0,
+                                          (uint32_t)s_frameBuf1};
 
 static const uint32_t palette[] = {0x001F0000U, 0x7C0003E0U};
 
@@ -71,210 +72,188 @@ static volatile bool s_frameAddrUpdated = false;
 /*******************************************************************************
  * Code
  ******************************************************************************/
-static void BOARD_InitPWM(void)
-{
-    sctimer_config_t config;
-    sctimer_pwm_signal_param_t pwmParam;
-    uint32_t event;
+static void BOARD_InitPWM(void) {
+  sctimer_config_t config;
+  sctimer_pwm_signal_param_t pwmParam;
+  uint32_t event;
 
-    CLOCK_AttachClk(kMCLK_to_SCT_CLK);
+  CLOCK_AttachClk(kMCLK_to_SCT_CLK);
 
-    CLOCK_SetClkDiv(kCLOCK_DivSctClk, 2, true);
+  CLOCK_SetClkDiv(kCLOCK_DivSctClk, 2, true);
 
-    SCTIMER_GetDefaultConfig(&config);
+  SCTIMER_GetDefaultConfig(&config);
 
-    SCTIMER_Init(SCT0, &config);
+  SCTIMER_Init(SCT0, &config);
 
-    pwmParam.output = kSCTIMER_Out_5;
-    pwmParam.level = kSCTIMER_HighTrue;
-    pwmParam.dutyCyclePercent = 5;
+  pwmParam.output = kSCTIMER_Out_5;
+  pwmParam.level = kSCTIMER_HighTrue;
+  pwmParam.dutyCyclePercent = 5;
 
-    SCTIMER_SetupPwm(SCT0, &pwmParam, kSCTIMER_CenterAlignedPwm, 1000U, CLOCK_GetFreq(kCLOCK_Sct), &event);
+  SCTIMER_SetupPwm(SCT0, &pwmParam, kSCTIMER_CenterAlignedPwm, 1000U,
+                   CLOCK_GetFreq(kCLOCK_Sct), &event);
 }
 
-void APP_LCD_IRQHandler(void)
-{
-    uint32_t intStatus = LCDC_GetEnabledInterruptsPendingStatus(APP_LCD);
+void APP_LCD_IRQHandler(void) {
+  uint32_t intStatus = LCDC_GetEnabledInterruptsPendingStatus(APP_LCD);
 
-    LCDC_ClearInterruptsStatus(APP_LCD, intStatus);
+  LCDC_ClearInterruptsStatus(APP_LCD, intStatus);
 
-    if (intStatus & kLCDC_BaseAddrUpdateInterrupt)
-    {
-        s_frameAddrUpdated = true;
-    }
-    __DSB();
-    /* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F Store immediate overlapping
-      exception return operation might vector to incorrect interrupt */
+  if (intStatus & kLCDC_BaseAddrUpdateInterrupt) {
+    s_frameAddrUpdated = true;
+  }
+  __DSB();
+  /* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F Store immediate
+    overlapping exception return operation might vector to incorrect interrupt
+  */
 #if defined __CORTEX_M && (__CORTEX_M == 4U)
-    __DSB();
+  __DSB();
 #endif
 }
 
-static void APP_Draw2BPPLine(uint8_t *line, uint16_t start, uint16_t end, uint8_t color)
-{
-    uint8_t i;
-    uint16_t startByte;
-    uint16_t endByte;
+static void APP_Draw2BPPLine(uint8_t *line, uint16_t start, uint16_t end,
+                             uint8_t color) {
+  uint8_t i;
+  uint16_t startByte;
+  uint16_t endByte;
 
-    startByte = start / APP_PIXEL_PER_BYTE;
-    endByte = end / APP_PIXEL_PER_BYTE;
+  startByte = start / APP_PIXEL_PER_BYTE;
+  endByte = end / APP_PIXEL_PER_BYTE;
 
-    if (startByte == endByte)
-    {
-        for (i = (start & 0x03U); i < (end & 0x03U); i++)
-        {
-            line[startByte] = (line[startByte] & ~(0x03U << (i * 2U))) | (color << (i * 2U));
-        }
+  if (startByte == endByte) {
+    for (i = (start & 0x03U); i < (end & 0x03U); i++) {
+      line[startByte] =
+          (line[startByte] & ~(0x03U << (i * 2U))) | (color << (i * 2U));
     }
-    else
-    {
-        for (i = (start & 0x03U); i < APP_PIXEL_PER_BYTE; i++)
-        {
-            line[startByte] = (line[startByte] & ~(0x03U << (i * 2U))) | (color << (i * 2U));
-        }
-
-        for (i = (startByte + 1U); i < endByte; i++)
-        {
-            line[i] = color * 0x55U;
-        }
-
-        for (i = 0U; i < (end & 0x03U); i++)
-        {
-            line[endByte] = (line[endByte] & ~(0x03U << (i * 2U))) | (color << (i * 2));
-        }
+  } else {
+    for (i = (start & 0x03U); i < APP_PIXEL_PER_BYTE; i++) {
+      line[startByte] =
+          (line[startByte] & ~(0x03U << (i * 2U))) | (color << (i * 2U));
     }
+
+    for (i = (startByte + 1U); i < endByte; i++) {
+      line[i] = color * 0x55U;
+    }
+
+    for (i = 0U; i < (end & 0x03U); i++) {
+      line[endByte] =
+          (line[endByte] & ~(0x03U << (i * 2U))) | (color << (i * 2));
+    }
+  }
 }
 
-static void APP_FillBuffer(void *buffer)
-{
-    /* Background color. */
-    static uint8_t bgColor = 0U;
-    /* Foreground color. */
-    static uint8_t fgColor = 1U;
-    uint8_t colorToSet = 0U;
-    /* Position of the foreground rectangle. */
-    static uint16_t upperLeftX = 0U;
-    static uint16_t upperLeftY = 0U;
-    static uint16_t lowerRightX = (IMG_WIDTH - 1U) / 2U;
-    static uint16_t lowerRightY = (IMG_HEIGHT - 1U) / 2U;
-    static int8_t incX = 1;
-    static int8_t incY = 1;
-    /* Change color in next forame or not. */
-    static bool changeColor = false;
+static void APP_FillBuffer(void *buffer) {
+  /* Background color. */
+  static uint8_t bgColor = 0U;
+  /* Foreground color. */
+  static uint8_t fgColor = 1U;
+  uint8_t colorToSet = 0U;
+  /* Position of the foreground rectangle. */
+  static uint16_t upperLeftX = 0U;
+  static uint16_t upperLeftY = 0U;
+  static uint16_t lowerRightX = (IMG_WIDTH - 1U) / 2U;
+  static uint16_t lowerRightY = (IMG_HEIGHT - 1U) / 2U;
+  static int8_t incX = 1;
+  static int8_t incY = 1;
+  /* Change color in next forame or not. */
+  static bool changeColor = false;
 
-    uint32_t i, j;
-    uint8_t(*buf)[IMG_WIDTH / APP_PIXEL_PER_BYTE] = buffer;
+  uint32_t i, j;
+  uint8_t(*buf)[IMG_WIDTH / APP_PIXEL_PER_BYTE] = buffer;
 
-    /*
-     +------------------------------------------------------------------------+
-     |                                                                        |
-     |                                                                        |
-     |                                                                        |
-     |                          Area 1                                        |
-     |                                                                        |
-     |                                                                        |
-     |                  +---------------------------+                         |
-     |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
-     |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
-     |    Area 2        |XXXXXXXXXXXXXXXXXXXXXXXXXXX|       Area 3            |
-     |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
-     |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
-     |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
-     |                  +---------------------------+                         |
-     |                                                                        |
-     |                                                                        |
-     |                                                                        |
-     |                                                                        |
-     |                         Area 4                                         |
-     |                                                                        |
-     |                                                                        |
-     +------------------------------------------------------------------------+
-     */
+  /*
+   +------------------------------------------------------------------------+
+   |                                                                        |
+   |                                                                        |
+   |                                                                        |
+   |                          Area 1                                        |
+   |                                                                        |
+   |                                                                        |
+   |                  +---------------------------+                         |
+   |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
+   |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
+   |    Area 2        |XXXXXXXXXXXXXXXXXXXXXXXXXXX|       Area 3            |
+   |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
+   |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
+   |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
+   |                  +---------------------------+                         |
+   |                                                                        |
+   |                                                                        |
+   |                                                                        |
+   |                                                                        |
+   |                         Area 4                                         |
+   |                                                                        |
+   |                                                                        |
+   +------------------------------------------------------------------------+
+   */
 
-    /* Fill the frame buffer. */
-    /* Fill area 1. */
-    colorToSet = bgColor * 0x55U;
-    for (i = 0; i < upperLeftY; i++)
-    {
-        for (j = 0; j < IMG_WIDTH / APP_PIXEL_PER_BYTE; j++)
-        {
-            /* Background color. */
-            buf[i][j] = colorToSet;
-        }
+  /* Fill the frame buffer. */
+  /* Fill area 1. */
+  colorToSet = bgColor * 0x55U;
+  for (i = 0; i < upperLeftY; i++) {
+    for (j = 0; j < IMG_WIDTH / APP_PIXEL_PER_BYTE; j++) {
+      /* Background color. */
+      buf[i][j] = colorToSet;
     }
+  }
 
-    APP_Draw2BPPLine((uint8_t *)buf[i], 0, upperLeftX, bgColor);
-    APP_Draw2BPPLine((uint8_t *)buf[i], upperLeftX, lowerRightX + 1, fgColor);
-    APP_Draw2BPPLine((uint8_t *)buf[i], lowerRightX + 1, IMG_WIDTH, bgColor);
+  APP_Draw2BPPLine((uint8_t *)buf[i], 0, upperLeftX, bgColor);
+  APP_Draw2BPPLine((uint8_t *)buf[i], upperLeftX, lowerRightX + 1, fgColor);
+  APP_Draw2BPPLine((uint8_t *)buf[i], lowerRightX + 1, IMG_WIDTH, bgColor);
 
-    for (i++; i <= lowerRightY; i++)
-    {
-        for (j = 0; j < (IMG_WIDTH / APP_PIXEL_PER_BYTE); j++)
-        {
-            buf[i][j] = buf[upperLeftY][j];
-        }
+  for (i++; i <= lowerRightY; i++) {
+    for (j = 0; j < (IMG_WIDTH / APP_PIXEL_PER_BYTE); j++) {
+      buf[i][j] = buf[upperLeftY][j];
     }
+  }
 
-    /* Fill area 4. */
-    colorToSet = bgColor * 0x55U;
-    for (; i < IMG_HEIGHT; i++)
-    {
-        for (j = 0; j < IMG_WIDTH / APP_PIXEL_PER_BYTE; j++)
-        {
-            /* Background color. */
-            buf[i][j] = colorToSet;
-        }
+  /* Fill area 4. */
+  colorToSet = bgColor * 0x55U;
+  for (; i < IMG_HEIGHT; i++) {
+    for (j = 0; j < IMG_WIDTH / APP_PIXEL_PER_BYTE; j++) {
+      /* Background color. */
+      buf[i][j] = colorToSet;
     }
+  }
 
-    /* Update the format: color and rectangle position. */
-    upperLeftX += incX;
-    upperLeftY += incY;
-    lowerRightX += incX;
-    lowerRightY += incY;
+  /* Update the format: color and rectangle position. */
+  upperLeftX += incX;
+  upperLeftY += incY;
+  lowerRightX += incX;
+  lowerRightY += incY;
 
-    changeColor = false;
+  changeColor = false;
 
-    if (0U == upperLeftX)
-    {
-        incX = 1;
-        changeColor = true;
-    }
-    else if (IMG_WIDTH - 1 == lowerRightX)
-    {
-        incX = -1;
-        changeColor = true;
-    }
+  if (0U == upperLeftX) {
+    incX = 1;
+    changeColor = true;
+  } else if (IMG_WIDTH - 1 == lowerRightX) {
+    incX = -1;
+    changeColor = true;
+  }
 
-    if (0U == upperLeftY)
-    {
-        incY = 1;
-        changeColor = true;
-    }
-    else if (IMG_HEIGHT - 1 == lowerRightY)
-    {
-        incY = -1;
-        changeColor = true;
-    }
+  if (0U == upperLeftY) {
+    incY = 1;
+    changeColor = true;
+  } else if (IMG_HEIGHT - 1 == lowerRightY) {
+    incY = -1;
+    changeColor = true;
+  }
 
-    if (changeColor)
-    {
-        if (APP_PIXEL_MAX_VALUE == fgColor)
-        {
-            fgColor = 1U;
-        }
-        else
-        {
-            fgColor++;
-        }
+  if (changeColor) {
+    if (APP_PIXEL_MAX_VALUE == fgColor) {
+      fgColor = 1U;
+    } else {
+      fgColor++;
     }
+  }
 }
 
 void LCD_Setup(void) {
-	lcdc_config_t lcdConfig;
+  lcdc_config_t lcdConfig;
 
   /* Route Main clock to LCD. */
-	CLOCK_AttachClk(kMCLK_to_LCD_CLK);
-	CLOCK_SetClkDiv(kCLOCK_DivLcdClk, 1, true);
+  CLOCK_AttachClk(kMCLK_to_LCD_CLK);
+  CLOCK_SetClkDiv(kCLOCK_DivLcdClk, 1, true);
 
   /* Set the back light PWM. */
   BOARD_InitPWM();
@@ -313,21 +292,19 @@ void LCD_Setup(void) {
 }
 
 void LCD_RunExample(void) {
-  while (1) {
-    /* Fill the inactive buffer. */
-    APP_FillBuffer((void *)s_frameBufAddr[s_inactiveBufsIdx]);
+  /* Fill the inactive buffer. */
+  APP_FillBuffer((void *)s_frameBufAddr[s_inactiveBufsIdx]);
 
-    while (!s_frameAddrUpdated) {
-    }
-
-    /*
-     * The buffer address has been loaded to the LCD controller, now
-     * set the inactive buffer to active buffer.
-     */
-    LCDC_SetPanelAddr(APP_LCD, kLCDC_UpperPanel,
-                      (uint32_t)(s_frameBufAddr[s_inactiveBufsIdx]));
-
-    s_frameAddrUpdated = false;
-    s_inactiveBufsIdx ^= 1U;
+  while (!s_frameAddrUpdated) {
   }
+
+  /*
+   * The buffer address has been loaded to the LCD controller, now
+   * set the inactive buffer to active buffer.
+   */
+  LCDC_SetPanelAddr(APP_LCD, kLCDC_UpperPanel,
+                    (uint32_t)(s_frameBufAddr[s_inactiveBufsIdx]));
+
+  s_frameAddrUpdated = false;
+  s_inactiveBufsIdx ^= 1U;
 }

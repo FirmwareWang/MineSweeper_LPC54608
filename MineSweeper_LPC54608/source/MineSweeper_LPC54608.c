@@ -34,20 +34,30 @@
  * @brief   Application entry point.
  */
 #include <stdio.h>
+#include "FreeRTOS.h"
+#include "FreeRTOSConfig.h"
 #include "LPC54608.h"
 #include "board.h"
 #include "clock_config.h"
 #include "lcd_tft.h"
 #include "peripherals.h"
 #include "pin_mux.h"
-#include "FreeRTOSConfig.h"
-#include "FreeRTOS.h"
 #include "task.h"
 
 static void LcdTask(void *pvParameters) {
   LCD_Setup();
 
-  LCD_RunExample();
+  while(1) {
+    LCD_RunExample();
+    vTaskDelay(1);
+  }
+}
+
+static void PrintTask(void *pvParameters) {
+  while (1) {
+    printf("test\n");
+    vTaskDelay(configTICK_RATE_HZ / 2);
+  }
 }
 
 /*
@@ -57,8 +67,10 @@ int main(void) {
   BOARD_InitPins();
   BOARD_BootClockFROHF48M();
 
-  /* UART output thread, simply counts seconds */
   xTaskCreate(LcdTask, "vLcdTask", configMINIMAL_STACK_SIZE, NULL,
+              (tskIDLE_PRIORITY + 1UL), (xTaskHandle *)NULL);
+
+  xTaskCreate(PrintTask, "vPrintTask", configMINIMAL_STACK_SIZE, NULL,
               (tskIDLE_PRIORITY + 1UL), (xTaskHandle *)NULL);
 
   /* Start the scheduler */
