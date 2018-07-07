@@ -34,45 +34,10 @@
  * @brief   Application entry point.
  */
 #include <stdio.h>
-#include "FreeRTOS.h"
-#include "FreeRTOSConfig.h"
-#include "LPC54608.h"
 #include "board.h"
 #include "clock_config.h"
-#include "lcd_tft.h"
 #include "peripherals.h"
 #include "pin_mux.h"
-#include "task.h"
-#include "touch_screen.h"
-
-#define RTOS_ACT 1
-
-static void LcdTask(void *pvParameters) {
-  LCD_Setup();
-
-  while(1) {
-    LCD_RunExample();
-    vTaskDelay(1);
-  }
-}
-
-static void GetTouchPointTask(void *pvParameters) {
-  TouchScreenPos pos;
-  TS_Init();
-  while (1) {
-    if(TS_GetSingleTouch(&pos)) {
-      printf("posx: %d, posy: %d\n", pos.pos_x, pos.pos_y);
-    }
-    vTaskDelay(configTICK_RATE_HZ / 2);
-  }
-}
-
-static void PrintTask(void *pvParameters) {
-  while (1) {
-    printf("test\n");
-    vTaskDelay(configTICK_RATE_HZ / 2);
-  }
-}
 
 /*
  * @brief   Application entry point.
@@ -81,19 +46,7 @@ int main(void) {
   BOARD_InitPins();
   BOARD_BootClockFROHF48M();
 
-#if (RTOS_ACT == 1)
-  xTaskCreate(LcdTask, "vLcdTask", configMINIMAL_STACK_SIZE, NULL,
-              (tskIDLE_PRIORITY + 1UL), (xTaskHandle *)NULL);
-
-  xTaskCreate(GetTouchPointTask, "GetTouchPointTask", 
-              configMINIMAL_STACK_SIZE, NULL,
-              (tskIDLE_PRIORITY + 1UL), (xTaskHandle *)NULL);
-
-  /* Start the scheduler */
-  vTaskStartScheduler();
-#else
-  GetTouchPointTask(NULL);
-#endif
+  RTOS_RunApp();
 
   while (1) {
     __WFI();
