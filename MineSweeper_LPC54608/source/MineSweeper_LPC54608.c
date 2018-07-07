@@ -33,13 +33,22 @@
  * @file    MineSweeper_LPC54608.c
  * @brief   Application entry point.
  */
-#include "clock_config.h"
-#include "peripherals.h"
-#include "lcd_tft.h"
-#include "pin_mux.h"
+#include <stdio.h>
 #include "LPC54608.h"
 #include "board.h"
-#include <stdio.h>
+#include "clock_config.h"
+#include "lcd_tft.h"
+#include "peripherals.h"
+#include "pin_mux.h"
+#include "FreeRTOSConfig.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
+static void LcdTask(void *pvParameters) {
+  LCD_Setup();
+
+  LCD_RunExample();
+}
 
 /*
  * @brief   Application entry point.
@@ -48,9 +57,12 @@ int main(void) {
   BOARD_InitPins();
   BOARD_BootClockFROHF48M();
 
-  LCD_Setup();
+  /* UART output thread, simply counts seconds */
+  xTaskCreate(LcdTask, "vLcdTask", configMINIMAL_STACK_SIZE, NULL,
+              (tskIDLE_PRIORITY + 1UL), (xTaskHandle *)NULL);
 
-  LCD_RunExample();
+  /* Start the scheduler */
+  vTaskStartScheduler();
 
   while (1) {
     __WFI();
