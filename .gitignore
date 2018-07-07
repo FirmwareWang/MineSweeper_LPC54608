@@ -54,3 +54,5 @@ dkms.conf
 # MCUXpresso
 Debug/
 .vscode/
+.cproject
+.project
