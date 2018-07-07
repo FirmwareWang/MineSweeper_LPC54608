@@ -5,11 +5,11 @@
  *      Author: wangjingli
  */
 
-#include "task.h"
 #include "lcd_tft.h"
 #include "touch_screen.h"
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
+#include "task.h"
 #include "LPC54608.h"
 #include <stdio.h>
 

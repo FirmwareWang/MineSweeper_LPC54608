@@ -33,11 +33,11 @@
  * @file    MineSweeper_LPC54608.c
  * @brief   Application entry point.
  */
-#include <stdio.h>
-#include "board.h"
+#include "rtos_app.h"
 #include "clock_config.h"
-#include "peripherals.h"
 #include "pin_mux.h"
+#include "board.h"
+#include <stdio.h>
 
 /*
  * @brief   Application entry point.
