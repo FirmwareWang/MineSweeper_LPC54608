@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "simple_engine.h"
 #include "board.h"
 #include "fsl_lcdc.h"
 #include "fsl_sctimer.h"
@@ -26,15 +27,9 @@
 #define LCD_VFP 4
 #define LCD_VBP 12
 #define LCD_POL_FLAGS kLCDC_InvertVsyncPolarity | kLCDC_InvertHsyncPolarity
-#define IMG_HEIGHT 272
-#define IMG_WIDTH 480
 #define LCD_INPUT_CLK_FREQ CLOCK_GetFreq(kCLOCK_LCD)
 #define APP_LCD_IRQHandler LCD_IRQHandler
 #define APP_LCD_IRQn LCD_IRQn
-#define APP_BIT_PER_PIXEL 2
-#define APP_PIXEL_PER_BYTE 4
-#define APP_PIXEL_MAX_VALUE 3
-#define APP_PIXEL_MIN_VALUE 3
 
 /*******************************************************************************
  * Variables
@@ -110,144 +105,6 @@ void APP_LCD_IRQHandler(void) {
 #endif
 }
 
-static void APP_Draw2BPPLine(uint8_t *line, uint16_t start, uint16_t end,
-                             uint8_t color) {
-  uint8_t i;
-  uint16_t startByte;
-  uint16_t endByte;
-
-  startByte = start / APP_PIXEL_PER_BYTE;
-  endByte = end / APP_PIXEL_PER_BYTE;
-
-  if (startByte == endByte) {
-    for (i = (start & 0x03U); i < (end & 0x03U); i++) {
-      line[startByte] =
-          (line[startByte] & ~(0x03U << (i * 2U))) | (color << (i * 2U));
-    }
-  } else {
-    for (i = (start & 0x03U); i < APP_PIXEL_PER_BYTE; i++) {
-      line[startByte] =
-          (line[startByte] & ~(0x03U << (i * 2U))) | (color << (i * 2U));
-    }
-
-    for (i = (startByte + 1U); i < endByte; i++) {
-      line[i] = color * 0x55U;
-    }
-
-    for (i = 0U; i < (end & 0x03U); i++) {
-      line[endByte] =
-          (line[endByte] & ~(0x03U << (i * 2U))) | (color << (i * 2));
-    }
-  }
-}
-
-static void APP_FillBuffer(void *buffer) {
-  /* Background color. */
-  static uint8_t bgColor = 0U;
-  /* Foreground color. */
-  static uint8_t fgColor = 1U;
-  uint8_t colorToSet = 0U;
-  /* Position of the foreground rectangle. */
-  static uint16_t upperLeftX = 0U;
-  static uint16_t upperLeftY = 0U;
-  static uint16_t lowerRightX = (IMG_WIDTH - 1U) / 2U;
-  static uint16_t lowerRightY = (IMG_HEIGHT - 1U) / 2U;
-  static int8_t incX = 1;
-  static int8_t incY = 1;
-  /* Change color in next forame or not. */
-  static bool changeColor = false;
-
-  uint32_t i, j;
-  uint8_t(*buf)[IMG_WIDTH / APP_PIXEL_PER_BYTE] = buffer;
-
-  /*
-   +------------------------------------------------------------------------+
-   |                                                                        |
-   |                                                                        |
-   |                                                                        |
-   |                          Area 1                                        |
-   |                                                                        |
-   |                                                                        |
-   |                  +---------------------------+                         |
-   |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
-   |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
-   |    Area 2        |XXXXXXXXXXXXXXXXXXXXXXXXXXX|       Area 3            |
-   |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
-   |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
-   |                  |XXXXXXXXXXXXXXXXXXXXXXXXXXX|                         |
-   |                  +---------------------------+                         |
-   |                                                                        |
-   |                                                                        |
-   |                                                                        |
-   |                                                                        |
-   |                         Area 4                                         |
-   |                                                                        |
-   |                                                                        |
-   +------------------------------------------------------------------------+
-   */
-
-  /* Fill the frame buffer. */
-  /* Fill area 1. */
-  colorToSet = bgColor * 0x55U;
-  for (i = 0; i < upperLeftY; i++) {
-    for (j = 0; j < IMG_WIDTH / APP_PIXEL_PER_BYTE; j++) {
-      /* Background color. */
-      buf[i][j] = colorToSet;
-    }
-  }
-
-  APP_Draw2BPPLine((uint8_t *)buf[i], 0, upperLeftX, bgColor);
-  APP_Draw2BPPLine((uint8_t *)buf[i], upperLeftX, lowerRightX + 1, fgColor);
-  APP_Draw2BPPLine((uint8_t *)buf[i], lowerRightX + 1, IMG_WIDTH, bgColor);
-
-  for (i++; i <= lowerRightY; i++) {
-    for (j = 0; j < (IMG_WIDTH / APP_PIXEL_PER_BYTE); j++) {
-      buf[i][j] = buf[upperLeftY][j];
-    }
-  }
-
-  /* Fill area 4. */
-  colorToSet = bgColor * 0x55U;
-  for (; i < IMG_HEIGHT; i++) {
-    for (j = 0; j < IMG_WIDTH / APP_PIXEL_PER_BYTE; j++) {
-      /* Background color. */
-      buf[i][j] = colorToSet;
-    }
-  }
-
-  /* Update the format: color and rectangle position. */
-  upperLeftX += incX;
-  upperLeftY += incY;
-  lowerRightX += incX;
-  lowerRightY += incY;
-
-  changeColor = false;
-
-  if (0U == upperLeftX) {
-    incX = 1;
-    changeColor = true;
-  } else if (IMG_WIDTH - 1 == lowerRightX) {
-    incX = -1;
-    changeColor = true;
-  }
-
-  if (0U == upperLeftY) {
-    incY = 1;
-    changeColor = true;
-  } else if (IMG_HEIGHT - 1 == lowerRightY) {
-    incY = -1;
-    changeColor = true;
-  }
-
-  if (changeColor) {
-    if (APP_PIXEL_MAX_VALUE == fgColor) {
-      fgColor = 1U;
-    } else {
-      fgColor++;
-    }
-  }
-}
-
 void LCD_Setup(void) {
   lcdc_config_t lcdConfig;
 
@@ -260,8 +117,6 @@ void LCD_Setup(void) {
 
   s_frameAddrUpdated = false;
   s_inactiveBufsIdx = 1;
-
-  APP_FillBuffer((void *)(s_frameBufAddr[0]));
 
   LCDC_GetDefaultConfig(&lcdConfig);
 
@@ -292,8 +147,7 @@ void LCD_Setup(void) {
 }
 
 void LCD_RunExample(void) {
-  /* Fill the inactive buffer. */
-  APP_FillBuffer((void *)s_frameBufAddr[s_inactiveBufsIdx]);
+  APP_DrawPoint((void *)s_frameBufAddr[s_inactiveBufsIdx], 16, 16);
 
   while (!s_frameAddrUpdated) {
   }
