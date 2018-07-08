@@ -146,8 +146,8 @@ void LCD_Setup(void) {
   LCDC_PowerUp(APP_LCD);
 }
 
-void LCD_RunExample(void) {
-  APP_DrawPoint((void *)s_frameBufAddr[s_inactiveBufsIdx], 16, 16);
+void LCD_RunExample(uint16_t pos_x, uint16_t pos_y) {
+  APP_DrawPoint((void *)s_frameBufAddr[s_inactiveBufsIdx], pos_x, pos_y);
 
   while (!s_frameAddrUpdated) {
   }
