@@ -10,8 +10,8 @@
 
 #include <stdint.h>
 
-void LCD_Setup(void);
+void LCD_Setup(uint32_t panel_addr);
 
-void LCD_RunExample(uint16_t pos_x, uint16_t pos_y);
+void LCD_RunExample(uint32_t buf_addr);
 
 #endif /* LCD_INC_LCD_TFT_H_ */

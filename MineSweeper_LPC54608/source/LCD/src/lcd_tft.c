@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "simple_engine.h"
 #include "board.h"
 #include "fsl_lcdc.h"
 #include "fsl_sctimer.h"
@@ -35,31 +34,7 @@
  * Variables
  ******************************************************************************/
 
-#if (defined(__CC_ARM) || defined(__GNUC__))
-__attribute__((aligned(8)))
-#elif defined(__ICCARM__)
-#pragma data_alignment = 8
-#else
-#error Toolchain not support.
-#endif
-static uint8_t s_frameBuf0[IMG_HEIGHT][IMG_WIDTH / APP_PIXEL_PER_BYTE];
-
-#if (defined(__CC_ARM) || defined(__GNUC__))
-__attribute__((aligned(8)))
-#elif defined(__ICCARM__)
-#pragma data_alignment = 8
-#else
-#error Toolchain not support.
-#endif
-static uint8_t s_frameBuf1[IMG_HEIGHT][IMG_WIDTH / APP_PIXEL_PER_BYTE];
-
-static const uint32_t s_frameBufAddr[] = {(uint32_t)s_frameBuf0,
-                                          (uint32_t)s_frameBuf1};
-
 static const uint32_t palette[] = {0x001F0000U, 0x7C0003E0U};
-
-/* The index of the inactive buffer. */
-static volatile uint8_t s_inactiveBufsIdx;
 
 /* The new frame address already loaded to the LCD controller. */
 static volatile bool s_frameAddrUpdated = false;
@@ -105,7 +80,7 @@ void APP_LCD_IRQHandler(void) {
 #endif
 }
 
-void LCD_Setup(void) {
+void LCD_Setup(uint32_t panel_addr) {
   lcdc_config_t lcdConfig;
 
   /* Route Main clock to LCD. */
@@ -116,7 +91,6 @@ void LCD_Setup(void) {
   BOARD_InitPWM();
 
   s_frameAddrUpdated = false;
-  s_inactiveBufsIdx = 1;
 
   LCDC_GetDefaultConfig(&lcdConfig);
 
@@ -130,7 +104,7 @@ void LCD_Setup(void) {
   lcdConfig.vfp = LCD_VFP;
   lcdConfig.vbp = LCD_VBP;
   lcdConfig.polarityFlags = LCD_POL_FLAGS;
-  lcdConfig.upperPanelAddr = (uint32_t)s_frameBufAddr[0];
+  lcdConfig.upperPanelAddr = panel_addr;
   lcdConfig.bpp = kLCDC_2BPP;
   lcdConfig.display = kLCDC_DisplayTFT;
   lcdConfig.swapRedBlue = false;
@@ -146,9 +120,7 @@ void LCD_Setup(void) {
   LCDC_PowerUp(APP_LCD);
 }
 
-void LCD_RunExample(uint16_t pos_x, uint16_t pos_y) {
-  APP_DrawPoint((void *)s_frameBufAddr[s_inactiveBufsIdx], pos_x, pos_y);
-
+void LCD_RunExample(uint32_t buf_addr) {
   while (!s_frameAddrUpdated) {
   }
 
@@ -156,9 +128,7 @@ void LCD_RunExample(uint16_t pos_x, uint16_t pos_y) {
    * The buffer address has been loaded to the LCD controller, now
    * set the inactive buffer to active buffer.
    */
-  LCDC_SetPanelAddr(APP_LCD, kLCDC_UpperPanel,
-                    (uint32_t)(s_frameBufAddr[s_inactiveBufsIdx]));
+  LCDC_SetPanelAddr(APP_LCD, kLCDC_UpperPanel, buf_addr);
 
   s_frameAddrUpdated = false;
-  s_inactiveBufsIdx ^= 1U;
 }
