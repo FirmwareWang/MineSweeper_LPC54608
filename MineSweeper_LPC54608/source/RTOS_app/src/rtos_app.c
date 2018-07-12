@@ -59,7 +59,7 @@ static void LcdTask(void *pvParameters) {
                     &ulNotifiedValue,
                     portMAX_DELAY );
     if( ( ulNotifiedValue & POS_READY ) != 0 ) {
-      LCD_RunExample(pos.pos_y, pos.pos_x);
+      LCD_Update(pos.pos_y, pos.pos_x);
     }
     vTaskDelay(1);
   }

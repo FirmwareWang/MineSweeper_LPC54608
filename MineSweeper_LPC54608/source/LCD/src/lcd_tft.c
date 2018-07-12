@@ -5,17 +5,16 @@
  *      Author: wangjingli
  */
 
-#include <stdio.h>
-#include <string.h>
-#include "board.h"
 #include "fsl_lcdc.h"
 #include "fsl_sctimer.h"
 #include "pin_mux.h"
+#include "board.h"
+#include <stdio.h>
+#include <string.h>
 
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-#define APP_LCD LCD
 #define LCD_PANEL_CLK 9000000
 #define LCD_PPL 480
 #define LCD_HSW 2
@@ -27,8 +26,6 @@
 #define LCD_VBP 12
 #define LCD_POL_FLAGS kLCDC_InvertVsyncPolarity | kLCDC_InvertHsyncPolarity
 #define LCD_INPUT_CLK_FREQ CLOCK_GetFreq(kCLOCK_LCD)
-#define APP_LCD_IRQHandler LCD_IRQHandler
-#define APP_LCD_IRQn LCD_IRQn
 
 /*******************************************************************************
  * Variables
@@ -42,7 +39,7 @@ static volatile bool s_frameAddrUpdated = false;
 /*******************************************************************************
  * Code
  ******************************************************************************/
-static void BOARD_InitPWM(void) {
+static void LCD_InitBacklightPwm(void) {
   sctimer_config_t config;
   sctimer_pwm_signal_param_t pwmParam;
   uint32_t event;
@@ -63,21 +60,15 @@ static void BOARD_InitPWM(void) {
                    CLOCK_GetFreq(kCLOCK_Sct), &event);
 }
 
-void APP_LCD_IRQHandler(void) {
-  uint32_t intStatus = LCDC_GetEnabledInterruptsPendingStatus(APP_LCD);
+void LCD_IRQHandler(void) {
+  uint32_t intStatus = LCDC_GetEnabledInterruptsPendingStatus(LCD);
 
-  LCDC_ClearInterruptsStatus(APP_LCD, intStatus);
+  LCDC_ClearInterruptsStatus(LCD, intStatus);
 
   if (intStatus & kLCDC_BaseAddrUpdateInterrupt) {
     s_frameAddrUpdated = true;
   }
   __DSB();
-  /* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F Store immediate
-    overlapping exception return operation might vector to incorrect interrupt
-  */
-#if defined __CORTEX_M && (__CORTEX_M == 4U)
-  __DSB();
-#endif
 }
 
 void LCD_Setup(uint32_t panel_addr) {
@@ -88,7 +79,7 @@ void LCD_Setup(uint32_t panel_addr) {
   CLOCK_SetClkDiv(kCLOCK_DivLcdClk, 1, true);
 
   /* Set the back light PWM. */
-  BOARD_InitPWM();
+  LCD_InitBacklightPwm();
 
   s_frameAddrUpdated = false;
 
@@ -109,18 +100,18 @@ void LCD_Setup(uint32_t panel_addr) {
   lcdConfig.display = kLCDC_DisplayTFT;
   lcdConfig.swapRedBlue = false;
 
-  LCDC_Init(APP_LCD, &lcdConfig, LCD_INPUT_CLK_FREQ);
+  LCDC_Init(LCD, &lcdConfig, LCD_INPUT_CLK_FREQ);
 
-  LCDC_SetPalette(APP_LCD, palette, ARRAY_SIZE(palette));
+  LCDC_SetPalette(LCD, palette, ARRAY_SIZE(palette));
 
-  LCDC_EnableInterrupts(APP_LCD, kLCDC_BaseAddrUpdateInterrupt);
-  NVIC_EnableIRQ(APP_LCD_IRQn);
+  LCDC_EnableInterrupts(LCD, kLCDC_BaseAddrUpdateInterrupt);
+  NVIC_EnableIRQ(LCD_IRQn);
 
-  LCDC_Start(APP_LCD);
-  LCDC_PowerUp(APP_LCD);
+  LCDC_Start(LCD);
+  LCDC_PowerUp(LCD);
 }
 
-void LCD_RunExample(uint32_t buf_addr) {
+void LCD_Update(uint32_t buf_addr) {
   while (!s_frameAddrUpdated) {
   }
 
@@ -128,7 +119,7 @@ void LCD_RunExample(uint32_t buf_addr) {
    * The buffer address has been loaded to the LCD controller, now
    * set the inactive buffer to active buffer.
    */
-  LCDC_SetPanelAddr(APP_LCD, kLCDC_UpperPanel, buf_addr);
+  LCDC_SetPanelAddr(LCD, kLCDC_UpperPanel, buf_addr);
 
   s_frameAddrUpdated = false;
 }

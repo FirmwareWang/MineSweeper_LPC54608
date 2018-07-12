@@ -113,7 +113,7 @@ void DrawUtil_Init(void) {
 void DrawUtil_Point(uint16_t pos_x, uint16_t pos_y) {
   APP_DrawPoint((void *)s_frameBufAddr[s_inactiveBufsIdx], pos_x, pos_y);
 
-  LCD_RunExample((uint32_t)s_frameBufAddr[s_inactiveBufsIdx]);
+  LCD_Update((uint32_t)s_frameBufAddr[s_inactiveBufsIdx]);
 
   s_inactiveBufsIdx ^= 1U;
 }
