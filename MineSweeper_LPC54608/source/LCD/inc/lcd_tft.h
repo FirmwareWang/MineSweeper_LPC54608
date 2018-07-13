@@ -10,6 +10,9 @@
 
 #include <stdint.h>
 
+#define IMG_HEIGHT 272
+#define IMG_WIDTH 480
+
 void LCD_Setup(uint32_t panel_addr);
 
 void LCD_Update(uint32_t buf_addr);

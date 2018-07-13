@@ -10,14 +10,21 @@
 
 #include <stdint.h>
 
-#define IMG_HEIGHT 272
-#define IMG_WIDTH 480
+#define FRAME_BUF_NUM 2
 
-void DrawUtil_Init(void);
-void DrawUtil_Point(uint16_t pos_x, uint16_t pos_y);
+typedef struct _DrawUtilConfig {
+  uint16_t image_width;
+  uint16_t image_height;
+  uint16_t pixel_per_byte;
+  uint32_t frame_buf_addr[FRAME_BUF_NUM];
+} DrawUtilConfig;
 
-void DrawUtil_Draw2BPPLine(uint8_t *line, uint16_t start, uint16_t end,
-                           uint8_t color);
-void APP_DrawPoint(void *buffer, uint16_t pos_x, uint16_t pos_y);
+void DrawUtil_Init(DrawUtilConfig *config);
+
+void DrawUtil_DrawFrameDone(void);
+
+uint32_t DrawUtil_InactFrameAddr(void);
+
+void APP_DrawPoint(uint16_t pos_x, uint16_t pos_y);
 
 #endif /* IMAGE_BUF_INC_DRAW_UTIL_H_ */

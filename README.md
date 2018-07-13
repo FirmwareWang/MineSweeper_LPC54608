@@ -3,8 +3,8 @@ A imitation of mine sweeper based on LPC54608
 
 plan:
 
-engine
- |
-draw
- |
-LED
+   engine
+     |
+  --------
+  |      |
+  LED  draw
