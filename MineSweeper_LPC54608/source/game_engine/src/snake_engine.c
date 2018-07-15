@@ -9,6 +9,7 @@
 #include "draw_util.h"
 #include "display_config.h"
 #include <stdint.h>
+#include <stdbool.h>
 
 /*******************************************************************************
  * Definitions
@@ -31,6 +32,7 @@ typedef enum {
 
 static uint16_t cur_pos_x = INIT_SNAKE_POS_X;
 static uint16_t cur_pos_y = INIT_SNAKE_POS_Y;
+static TouchDrection cur_direction = RIGHT;
 
 /*******************************************************************************
  * Pravite 
@@ -109,10 +111,12 @@ void Snake_Init(void) {
   DrawUtil_DrawFrameDone();
 }
 
-void Snake_ControlPoint(uint16_t pos_x, uint16_t pos_y) {
-  TouchDrection dir = Snake_TransPosToDirect(pos_x, pos_y);
+void Snake_ControlPoint(uint16_t pos_x, uint16_t pos_y, bool pos_updated) {
+  if (pos_updated) {
+    cur_direction = Snake_TransPosToDirect(pos_x, pos_y);
+  }
 
-  Snake_UpdateCurPos(dir);
+  Snake_UpdateCurPos(cur_direction);
   Snake_UpdateDisplay();
 }
 

@@ -40,11 +40,10 @@ static void GameController(void *pvParameters) {
     xTaskNotifyWait(0x00,
                     0xFFFFFFFFUL,
                     &ulNotifiedValue,
-                    portMAX_DELAY );
-    if( ( ulNotifiedValue & POS_READY ) != 0 ) {
-      // The coordinate of touch screen is inverse to that of LCD
-      Snake_ControlPoint(pos.pos_y, pos.pos_x);
-    }
+                    configTICK_RATE_HZ);
+    // The coordinate of touch screen is inverse to that of LCD
+    Snake_ControlPoint(pos.pos_y, pos.pos_x, 
+      (bool)(ulNotifiedValue & POS_READY));
     vTaskDelay(1);
   }
 }
