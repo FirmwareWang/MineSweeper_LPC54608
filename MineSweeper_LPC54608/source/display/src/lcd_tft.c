@@ -5,6 +5,7 @@
  *      Author: wangjingli
  */
 
+#include "display_config.h"
 #include "fsl_lcdc.h"
 #include "fsl_sctimer.h"
 #include "pin_mux.h"
@@ -16,11 +17,11 @@
  * Definitions
  ******************************************************************************/
 #define LCD_PANEL_CLK 9000000
-#define LCD_PPL 480
+#define LCD_PPL IMG_WIDTH
 #define LCD_HSW 2
 #define LCD_HFP 8
 #define LCD_HBP 43
-#define LCD_LPP 272
+#define LCD_LPP IMG_HEIGHT
 #define LCD_VSW 10
 #define LCD_VFP 4
 #define LCD_VBP 12
