@@ -37,7 +37,8 @@ void Engine_Init(void) {
 }
 
 void Engine_TrackPoint(uint16_t pos_x, uint16_t pos_y) {
-  APP_DrawPoint(pos_x, pos_y);
+  DrawUtil_FillBackGroundColor();
+  DrawUtil_DrawPoint(pos_x, pos_y);
 
   LCD_Update(DrawUtil_InactFrameAddr());
 

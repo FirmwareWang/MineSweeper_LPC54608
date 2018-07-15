@@ -72,46 +72,31 @@ static void DrawUtil_Draw2BPPLine(uint8_t *line, uint16_t start,
 }
 
 
-void APP_DrawPoint(uint16_t pos_x, uint16_t pos_y) {
-  /* Background color. */
-  static uint8_t bgColor = 0U;
+void DrawUtil_DrawPoint(uint16_t pos_x, uint16_t pos_y) {
   /* Foreground color. */
   static uint8_t fgColor = 1U;
-  uint8_t colorToSet = 0U;
 
   uint16_t width_bytes = 
     draw_handle.config.image_width / draw_handle.config.pixel_per_byte;
 
-  uint32_t i, j;
   uint8_t(*buf)[width_bytes] = (uint8_t(*)[width_bytes])
     draw_handle.config.frame_buf_addr[draw_handle.inactive_buf_idx];
 
-  /* Fill the frame buffer. */
-  /* Fill area 1. */
-  colorToSet = bgColor * 0x55U;
-  for (i = 0; i < pos_y; i++) {
-    for (j = 0; j < width_bytes; j++) {
-      /* Background color. */
-      buf[i][j] = colorToSet;
-    }
+  for (int i = pos_y - 1; i < pos_y + 2; i++) {
+    DrawUtil_Draw2BPPLine((uint8_t *)buf[i], pos_x, pos_x + 3, fgColor);
   }
+}
 
-  DrawUtil_Draw2BPPLine((uint8_t *)buf[i], 0, pos_x, bgColor);
-  DrawUtil_Draw2BPPLine((uint8_t *)buf[i], pos_x, pos_x + 3, fgColor);
-  DrawUtil_Draw2BPPLine((uint8_t *)buf[i], pos_x + 3, draw_handle.config.image_width, bgColor);
-  
-  for (i++; i <= pos_y + 3; i++) {
-    for (j = 0; j < width_bytes; j++) {
-      buf[i][j] = buf[pos_y][j];
-    }
-  }
+void DrawUtil_FillBackGroundColor(void) {
+  uint8_t bg_color = 0;
+  uint16_t width_bytes = 
+    draw_handle.config.image_width / draw_handle.config.pixel_per_byte;
 
-  /* Fill area 4. */
-  colorToSet = bgColor * 0x55U;
-  for (; i < draw_handle.config.image_height; i++) {
-    for (j = 0; j < width_bytes; j++) {
-      /* Background color. */
-      buf[i][j] = colorToSet;
-    }
+  uint8_t(*buf)[width_bytes] = (uint8_t(*)[width_bytes])
+    draw_handle.config.frame_buf_addr[draw_handle.inactive_buf_idx];
+
+  for(int j = 0; j < draw_handle.config.image_height; j++) {
+    DrawUtil_Draw2BPPLine((uint8_t *)buf[j], 0, 
+      draw_handle.config.image_width, bg_color);
   }
 }
