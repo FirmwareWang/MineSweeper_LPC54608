@@ -18,6 +18,7 @@
  * Public
  ******************************************************************************/
 
+#if 0 /* stop maintaining this module temporarily */
 void Engine_Init(void) {
   LCD_Setup(DrawUtil_InactFrameAddr());
 }
@@ -30,3 +31,4 @@ void Engine_TrackPoint(uint16_t pos_x, uint16_t pos_y) {
 
   DrawUtil_DrawFrameDone();
 }
+#endif 

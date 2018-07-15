@@ -18,6 +18,8 @@
 #define INIT_SNAKE_POS_X 0
 #define INIT_SNAKE_POS_Y 0
 
+#define POINT_SIZE_PIXEL 3
+
 typedef enum {
   UP = 0,
   DOWN,
@@ -92,7 +94,7 @@ static void Snake_UpdateCurPos(TouchDrection dir) {
 
 static void Snake_UpdateDisplay(void) {
   DrawUtil_FillBackGroundColor();
-  DrawUtil_DrawPoint(cur_pos_x, cur_pos_y);
+  DrawUtil_DrawPoint(cur_pos_x, cur_pos_y, POINT_SIZE_PIXEL);
   LCD_Update(DrawUtil_InactFrameAddr());
 
   DrawUtil_DrawFrameDone();
@@ -104,7 +106,7 @@ static void Snake_UpdateDisplay(void) {
 
 void Snake_Init(void) {
   DrawUtil_FillBackGroundColor();
-  DrawUtil_DrawPoint(INIT_SNAKE_POS_X, INIT_SNAKE_POS_Y);
+  DrawUtil_DrawPoint(INIT_SNAKE_POS_X, INIT_SNAKE_POS_Y, POINT_SIZE_PIXEL);
 
   LCD_Setup(DrawUtil_InactFrameAddr());
 
