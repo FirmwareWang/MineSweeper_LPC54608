@@ -15,8 +15,8 @@
  * Definitions
  ******************************************************************************/
 
-#define INIT_SNAKE_POS_X 1
-#define INIT_SNAKE_POS_Y 1
+#define INIT_SNAKE_POS_X 0
+#define INIT_SNAKE_POS_Y 0
 
 typedef enum {
   UP = 0,

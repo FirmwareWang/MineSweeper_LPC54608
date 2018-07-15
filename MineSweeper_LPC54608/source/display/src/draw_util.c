@@ -87,7 +87,7 @@ void DrawUtil_DrawPoint(uint16_t pos_x, uint16_t pos_y) {
 
   LineBuf buf = (LineBuf)frame_buf_addr[inactive_buf_idx];
 
-  for (int i = pos_y - 1; i < pos_y + 2; i++) {
+  for (int i = pos_y; i < pos_y + 3; i++) {
     DrawUtil_Draw2BPPLine((uint8_t *)buf[i], pos_x, pos_x + 3, fgColor);
   }
 }
