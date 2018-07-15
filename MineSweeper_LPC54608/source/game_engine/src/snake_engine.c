@@ -79,16 +79,20 @@ static TouchDrection Snake_TransPosToDirect(uint16_t pos_x, uint16_t pos_y) {
 static void Snake_UpdateCurPos(TouchDrection dir) {
   switch(dir){
     case UP:
-      cur_pos_y = (cur_pos_y == 0) ? APP_IMG_HEIGHT : cur_pos_y - 1;
+      cur_pos_y = (cur_pos_y < POINT_SIZE_PIXEL) ? 
+                  APP_IMG_HEIGHT : cur_pos_y - POINT_SIZE_PIXEL;
       break;
     case DOWN:
-      cur_pos_y = (cur_pos_y == APP_IMG_HEIGHT) ? 0 : cur_pos_y + 1;
+      cur_pos_y = (APP_IMG_HEIGHT - cur_pos_y < POINT_SIZE_PIXEL) ? 
+                  0 : cur_pos_y + POINT_SIZE_PIXEL;
       break;
     case LEFT:
-      cur_pos_x = (cur_pos_x == 0) ? APP_IMG_WIDTH : cur_pos_x - 1;
+      cur_pos_x = (cur_pos_x < POINT_SIZE_PIXEL) ? 
+                  APP_IMG_WIDTH : cur_pos_x - POINT_SIZE_PIXEL;
       break;
     case RIGHT:
-      cur_pos_x = (cur_pos_x == APP_IMG_WIDTH) ? 0 : cur_pos_x + 1;
+      cur_pos_x = (APP_IMG_WIDTH - cur_pos_x < POINT_SIZE_PIXEL) ? 
+                  0 : cur_pos_x + POINT_SIZE_PIXEL;
       break;
     default:
       break;
