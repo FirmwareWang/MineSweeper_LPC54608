@@ -19,6 +19,8 @@
 #define INIT_SNAKE_POS_Y 0
 
 #define POINT_SIZE_PIXEL 3
+#define APP_IMG_HEIGHT (IMG_HEIGHT - POINT_SIZE_PIXEL)
+#define APP_IMG_WIDTH  (IMG_WIDTH - POINT_SIZE_PIXEL)
 
 typedef enum {
   UP = 0,
@@ -73,19 +75,20 @@ static TouchDrection Snake_TransPosToDirect(uint16_t pos_x, uint16_t pos_y) {
          (pos_y > IMG_HEIGHT / 2)    ? DOWN : RANGE_OUT;
 }
 
+// If the point goes out of image range, rolling it to another side
 static void Snake_UpdateCurPos(TouchDrection dir) {
   switch(dir){
     case UP:
-      cur_pos_y--;
+      cur_pos_y = (cur_pos_y == 0) ? APP_IMG_HEIGHT : cur_pos_y - 1;
       break;
     case DOWN:
-      cur_pos_y++;
+      cur_pos_y = (cur_pos_y == APP_IMG_HEIGHT) ? 0 : cur_pos_y + 1;
       break;
     case LEFT:
-      cur_pos_x--;
+      cur_pos_x = (cur_pos_x == 0) ? APP_IMG_WIDTH : cur_pos_x - 1;
       break;
     case RIGHT:
-      cur_pos_x++;
+      cur_pos_x = (cur_pos_x == APP_IMG_WIDTH) ? 0 : cur_pos_x + 1;
       break;
     default:
       break;
