@@ -28,7 +28,7 @@ typedef enum {
   LEFT,
   RIGHT,
   RANGE_OUT,
-} TouchDrection;
+} TouchDirection;
 
 /*******************************************************************************
  * Globals
@@ -36,13 +36,13 @@ typedef enum {
 
 static uint16_t cur_pos_x = INIT_SNAKE_POS_X;
 static uint16_t cur_pos_y = INIT_SNAKE_POS_Y;
-static TouchDrection cur_direction = RIGHT;
+static TouchDirection cur_direction = RIGHT;
 
 /*******************************************************************************
  * Pravite 
  ******************************************************************************/
 
-static TouchDrection Snake_TransPosToDirect(uint16_t pos_x, uint16_t pos_y) {
+static TouchDirection Snake_TransPosToDirect(uint16_t pos_x, uint16_t pos_y) {
  /*
      +-------------------------------------------------------------------------+
      |                 |                                      |                |
@@ -76,7 +76,7 @@ static TouchDrection Snake_TransPosToDirect(uint16_t pos_x, uint16_t pos_y) {
 }
 
 // If the point goes out of image range, rolling it to another side
-static void Snake_UpdateCurPos(TouchDrection dir) {
+static void Snake_UpdateCurPos(TouchDirection dir) {
   switch(dir){
     case UP:
       cur_pos_y = (cur_pos_y < POINT_SIZE_PIXEL) ? 
