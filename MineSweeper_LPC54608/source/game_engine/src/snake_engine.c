@@ -34,8 +34,7 @@ typedef enum {
  * Globals
  ******************************************************************************/
 
-static uint16_t cur_pos_x = INIT_SNAKE_POS_X;
-static uint16_t cur_pos_y = INIT_SNAKE_POS_Y;
+static DrawPos cur_pos = {INIT_SNAKE_POS_X, INIT_SNAKE_POS_Y};
 static TouchDirection cur_direction = RIGHT;
 
 /*******************************************************************************
@@ -79,20 +78,20 @@ static TouchDirection Snake_TransPosToDirect(uint16_t pos_x, uint16_t pos_y) {
 static void Snake_UpdateCurPos(TouchDirection dir) {
   switch(dir){
     case UP:
-      cur_pos_y = (cur_pos_y < POINT_SIZE_PIXEL) ? 
-                  APP_IMG_HEIGHT : cur_pos_y - POINT_SIZE_PIXEL;
+      cur_pos.y = (cur_pos.y < POINT_SIZE_PIXEL) ? 
+                  APP_IMG_HEIGHT : cur_pos.y - POINT_SIZE_PIXEL;
       break;
     case DOWN:
-      cur_pos_y = (APP_IMG_HEIGHT - cur_pos_y < POINT_SIZE_PIXEL) ? 
-                  0 : cur_pos_y + POINT_SIZE_PIXEL;
+      cur_pos.y = (APP_IMG_HEIGHT - cur_pos.y < POINT_SIZE_PIXEL) ? 
+                  0 : cur_pos.y + POINT_SIZE_PIXEL;
       break;
     case LEFT:
-      cur_pos_x = (cur_pos_x < POINT_SIZE_PIXEL) ? 
-                  APP_IMG_WIDTH : cur_pos_x - POINT_SIZE_PIXEL;
+      cur_pos.x = (cur_pos.x < POINT_SIZE_PIXEL) ? 
+                  APP_IMG_WIDTH : cur_pos.x - POINT_SIZE_PIXEL;
       break;
     case RIGHT:
-      cur_pos_x = (APP_IMG_WIDTH - cur_pos_x < POINT_SIZE_PIXEL) ? 
-                  0 : cur_pos_x + POINT_SIZE_PIXEL;
+      cur_pos.x = (APP_IMG_WIDTH - cur_pos.x < POINT_SIZE_PIXEL) ? 
+                  0 : cur_pos.x + POINT_SIZE_PIXEL;
       break;
     default:
       break;
@@ -101,7 +100,7 @@ static void Snake_UpdateCurPos(TouchDirection dir) {
 
 static void Snake_UpdateDisplay(void) {
   DrawUtil_FillBackGroundColor();
-  DrawUtil_DrawPoint(cur_pos_x, cur_pos_y, POINT_SIZE_PIXEL);
+  DrawUtil_DrawPoint(&cur_pos, POINT_SIZE_PIXEL);
   LCD_Update(DrawUtil_InactFrameAddr());
 
   DrawUtil_DrawFrameDone();
@@ -113,7 +112,7 @@ static void Snake_UpdateDisplay(void) {
 
 void Snake_Init(void) {
   DrawUtil_FillBackGroundColor();
-  DrawUtil_DrawPoint(INIT_SNAKE_POS_X, INIT_SNAKE_POS_Y, POINT_SIZE_PIXEL);
+  DrawUtil_DrawPoint(&cur_pos, POINT_SIZE_PIXEL);
 
   LCD_Setup(DrawUtil_InactFrameAddr());
 
