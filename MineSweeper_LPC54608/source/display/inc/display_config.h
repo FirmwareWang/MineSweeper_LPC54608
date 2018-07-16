@@ -13,4 +13,6 @@
 #define IMG_HEIGHT 272
 #define IMG_WIDTH 480
 
+#define POINT_SIZE_PIXEL 3
+
 #endif /* DISPLAY_INC_DISPLAY_CONFIG_H_ */

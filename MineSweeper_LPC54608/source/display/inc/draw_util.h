@@ -30,7 +30,7 @@ uint32_t DrawUtil_InactFrameAddr(void);
  * 
  *  @Parameter point_size The width and height of point in pixel.
  */
-void DrawUtil_DrawPoint(const DrawPos *pos, uint16_t point_size);
+void DrawUtil_DrawPoint(const DrawPos *pos);
 
 void DrawUtil_FillBackGroundColor(void);
 

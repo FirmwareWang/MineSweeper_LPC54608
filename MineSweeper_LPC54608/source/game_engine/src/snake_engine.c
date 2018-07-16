@@ -18,7 +18,6 @@
 #define INIT_SNAKE_POS_X 0
 #define INIT_SNAKE_POS_Y 0
 
-#define POINT_SIZE_PIXEL 3
 #define APP_IMG_HEIGHT (IMG_HEIGHT - POINT_SIZE_PIXEL)
 #define APP_IMG_WIDTH  (IMG_WIDTH - POINT_SIZE_PIXEL)
 
@@ -100,7 +99,7 @@ static void Snake_UpdateCurPos(TouchDirection dir) {
 
 static void Snake_UpdateDisplay(void) {
   DrawUtil_FillBackGroundColor();
-  DrawUtil_DrawPoint(&cur_pos, POINT_SIZE_PIXEL);
+  DrawUtil_DrawPoint(&cur_pos);
   LCD_Update(DrawUtil_InactFrameAddr());
 
   DrawUtil_DrawFrameDone();
@@ -112,7 +111,7 @@ static void Snake_UpdateDisplay(void) {
 
 void Snake_Init(void) {
   DrawUtil_FillBackGroundColor();
-  DrawUtil_DrawPoint(&cur_pos, POINT_SIZE_PIXEL);
+  DrawUtil_DrawPoint(&cur_pos);
 
   LCD_Setup(DrawUtil_InactFrameAddr());
 
