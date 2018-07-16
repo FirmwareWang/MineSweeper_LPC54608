@@ -11,8 +11,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-void Snake_Init(void);
+typedef void *SnakeHandle;
 
-void Snake_ControlPoint(uint16_t pos_x, uint16_t pos_y, bool pos_updated);
+SnakeHandle Snake_Init(void);
+
+void Snake_TransPosToDirect(SnakeHandle sh, 
+                            uint16_t touch_pos_x, 
+                            uint16_t touch_pos_y);
+
+void Snake_ControlPoint(SnakeHandle sh);
 
 #endif /* GAME_ENGINE_INC_SNAKE_ENGINE_H_ */

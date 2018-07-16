@@ -5,11 +5,13 @@
  *      Author: wangjingli
  */
 
+#include "snake_engine.h"
 #include "lcd_tft.h"
 #include "draw_util.h"
 #include "display_config.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 /*******************************************************************************
  * Definitions
@@ -29,18 +31,75 @@ typedef enum {
   RANGE_OUT,
 } TouchDirection;
 
+typedef struct _SnakeStatus {
+  DrawPos pos;
+  TouchDirection move_direct;
+} SnakeStatus;
+
 /*******************************************************************************
  * Globals
  ******************************************************************************/
-
-static DrawPos cur_pos = {INIT_SNAKE_POS_X, INIT_SNAKE_POS_Y};
-static TouchDirection cur_direction = RIGHT;
 
 /*******************************************************************************
  * Pravite 
  ******************************************************************************/
 
-static TouchDirection Snake_TransPosToDirect(uint16_t pos_x, uint16_t pos_y) {
+
+// If the point goes out of image range, rolling it to another side
+static void Snake_UpdateCurPos(SnakeStatus *stat) {
+  switch(stat->move_direct){
+    case UP:
+      stat->pos.y = (stat->pos.y < POINT_SIZE_PIXEL) ? 
+                    APP_IMG_HEIGHT : stat->pos.y - POINT_SIZE_PIXEL;
+      break;
+    case DOWN:
+      stat->pos.y = (APP_IMG_HEIGHT - stat->pos.y < POINT_SIZE_PIXEL) ? 
+                    0 : stat->pos.y + POINT_SIZE_PIXEL;
+      break;
+    case LEFT:
+      stat->pos.x = (stat->pos.x < POINT_SIZE_PIXEL) ? 
+                    APP_IMG_WIDTH : stat->pos.x - POINT_SIZE_PIXEL;
+      break;
+    case RIGHT:
+      stat->pos.x = (APP_IMG_WIDTH - stat->pos.x < POINT_SIZE_PIXEL) ? 
+                    0 : stat->pos.x + POINT_SIZE_PIXEL;
+      break;
+    default:
+      break;
+  }
+}
+
+static void Snake_UpdateDisplay(const DrawPos *pos) {
+  DrawUtil_FillBackGroundColor();
+  DrawUtil_DrawPoint(pos);
+  LCD_Update(DrawUtil_InactFrameAddr());
+
+  DrawUtil_DrawFrameDone();
+}
+
+/*******************************************************************************
+ * Public
+ ******************************************************************************/
+
+SnakeHandle Snake_Init(void) {
+  SnakeStatus *handle = (SnakeStatus *)malloc(sizeof(SnakeStatus) * 1);
+  handle->pos.x = INIT_SNAKE_POS_X;
+  handle->pos.y = INIT_SNAKE_POS_Y;
+  handle->move_direct = RIGHT;
+
+  DrawUtil_FillBackGroundColor();
+  DrawUtil_DrawPoint(&handle->pos);
+
+  LCD_Setup(DrawUtil_InactFrameAddr());
+
+  DrawUtil_DrawFrameDone();
+
+  return (SnakeHandle)handle;
+}
+
+void Snake_TransPosToDirect(SnakeHandle sh, 
+                            uint16_t touch_pos_x, 
+                            uint16_t touch_pos_y) {
  /*
      +-------------------------------------------------------------------------+
      |                 |                                      |                |
@@ -66,64 +125,18 @@ static TouchDirection Snake_TransPosToDirect(uint16_t pos_x, uint16_t pos_y) {
      |                 |                                      |                |
      +-------------------------------------------------------------------------+
   */ 
+  SnakeStatus *stat = (SnakeStatus *)sh;
 
-  return (pos_x < IMG_WIDTH / 4)     ? LEFT : 
-         (pos_x > IMG_WIDTH * 3 / 4) ? RIGHT :
-         (pos_y < IMG_HEIGHT / 2)    ? UP :
-         (pos_y > IMG_HEIGHT / 2)    ? DOWN : RANGE_OUT;
+  stat->move_direct =  
+    (touch_pos_x < IMG_WIDTH / 4)     ? LEFT : 
+    (touch_pos_x > IMG_WIDTH * 3 / 4) ? RIGHT : 
+    (touch_pos_y < IMG_HEIGHT / 2)    ? UP : 
+    (touch_pos_y > IMG_HEIGHT / 2)    ? DOWN : RANGE_OUT;
 }
 
-// If the point goes out of image range, rolling it to another side
-static void Snake_UpdateCurPos(TouchDirection dir) {
-  switch(dir){
-    case UP:
-      cur_pos.y = (cur_pos.y < POINT_SIZE_PIXEL) ? 
-                  APP_IMG_HEIGHT : cur_pos.y - POINT_SIZE_PIXEL;
-      break;
-    case DOWN:
-      cur_pos.y = (APP_IMG_HEIGHT - cur_pos.y < POINT_SIZE_PIXEL) ? 
-                  0 : cur_pos.y + POINT_SIZE_PIXEL;
-      break;
-    case LEFT:
-      cur_pos.x = (cur_pos.x < POINT_SIZE_PIXEL) ? 
-                  APP_IMG_WIDTH : cur_pos.x - POINT_SIZE_PIXEL;
-      break;
-    case RIGHT:
-      cur_pos.x = (APP_IMG_WIDTH - cur_pos.x < POINT_SIZE_PIXEL) ? 
-                  0 : cur_pos.x + POINT_SIZE_PIXEL;
-      break;
-    default:
-      break;
-  }
-}
-
-static void Snake_UpdateDisplay(void) {
-  DrawUtil_FillBackGroundColor();
-  DrawUtil_DrawPoint(&cur_pos);
-  LCD_Update(DrawUtil_InactFrameAddr());
-
-  DrawUtil_DrawFrameDone();
-}
-
-/*******************************************************************************
- * Public
- ******************************************************************************/
-
-void Snake_Init(void) {
-  DrawUtil_FillBackGroundColor();
-  DrawUtil_DrawPoint(&cur_pos);
-
-  LCD_Setup(DrawUtil_InactFrameAddr());
-
-  DrawUtil_DrawFrameDone();
-}
-
-void Snake_ControlPoint(uint16_t pos_x, uint16_t pos_y, bool pos_updated) {
-  if (pos_updated) {
-    cur_direction = Snake_TransPosToDirect(pos_x, pos_y);
-  }
-
-  Snake_UpdateCurPos(cur_direction);
-  Snake_UpdateDisplay();
+void Snake_ControlPoint(SnakeHandle sh) {
+  SnakeStatus *stat = (SnakeStatus *)sh;
+  Snake_UpdateCurPos(stat);
+  Snake_UpdateDisplay(&stat->pos);
 }
 

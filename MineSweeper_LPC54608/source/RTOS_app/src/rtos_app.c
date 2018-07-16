@@ -33,7 +33,7 @@ static xTaskHandle lcd_task_handle;
  ******************************************************************************/
 
 static void GameController(void *pvParameters) {
-  Snake_Init();
+  SnakeHandle sh = Snake_Init();
 
   uint32_t ulNotifiedValue;
   while(1) {
@@ -41,9 +41,11 @@ static void GameController(void *pvParameters) {
                     0xFFFFFFFFUL,
                     &ulNotifiedValue,
                     configTICK_RATE_HZ);
-    // The coordinate of touch screen is inverse to that of LCD
-    Snake_ControlPoint(pos.pos_y, pos.pos_x, 
-      (bool)(ulNotifiedValue & POS_READY));
+    if ((ulNotifiedValue & POS_READY) != 0) {
+      // The coordinate in touch screen is inverse to that in LCD
+      Snake_TransPosToDirect(sh, pos.pos_y, pos.pos_x);
+    }
+    Snake_ControlPoint(sh);
     vTaskDelay(1);
   }
 }
