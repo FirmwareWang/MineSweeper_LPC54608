@@ -164,7 +164,7 @@ bool Snake_TakeAction(SnakeCtr sc) {
   SnakeHandle *handle = (SnakeHandle *)sc;
   RINGBUFF_T *ring_buf = &(handle->snake_container);
 
-  SnakePixelPos cur_head, new_head, temp;
+  SnakePixelPos cur_head, new_head;
   RingBuffer_GetHead(ring_buf, &cur_head);
   Snake_GetNewHeadPos(&cur_head, handle->move_direct, &new_head);
   if(Snake_Suicide(ring_buf, &new_head)) {
@@ -172,7 +172,8 @@ bool Snake_TakeAction(SnakeCtr sc) {
   }
 
   RingBuffer_Insert(ring_buf, (void *)&new_head);
-  RingBuffer_Pop(&(handle->snake_container), &temp);
+  SnakePixelPos temp;
+  RingBuffer_Pop(ring_buf, &temp);
 
   return true;
 }
