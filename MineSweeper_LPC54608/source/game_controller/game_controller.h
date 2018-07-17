@@ -8,12 +8,14 @@
 #ifndef GAME_CONTROLLER_GAME_CONTROLLER_H_
 #define GAME_CONTROLLER_GAME_CONTROLLER_H_
 
-#include "snake_engine.h"
 #include <stdint.h>
+#include <stdbool.h>
 
-SnakeCtr GameCtr_Init(void);
+typedef void *GameCtrl;
 
-void GameCtr_Run(SnakeCtr sc,
+GameCtrl GameCtr_Init(void);
+
+void GameCtr_Run(GameCtrl gc,
                  uint16_t touch_pos_x, 
                  uint16_t touch_pos_y,
                  bool touch_trigger);

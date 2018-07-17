@@ -113,6 +113,7 @@ int RingBuffer_GetItem(RINGBUFF_T *RingBuff, void *data){
 }
 
 // TODO: add the unit test for ring buffer API
+// TODO: this function will change the status of cursor
 int RingBuffer_GetHead(RINGBUFF_T *RingBuff, void *data) {
   RingBuffer_Seek(RingBuff, RING_BUF_HEAD);
 

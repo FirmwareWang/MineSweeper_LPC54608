@@ -6,6 +6,7 @@
  */
 
 #include "game_controller.h"
+#include "snake_engine.h"
 #include "draw_util.h"
 #include "lcd_tft.h"
 #include <stdint.h>
@@ -31,7 +32,7 @@ static void GameCtr_UpdateDisplay(SnakeCtr sc) {
  * Public
  ******************************************************************************/
 
-SnakeCtr GameCtr_Init(void) {
+GameCtrl GameCtr_Init(void) {
   SnakeCtr sc = Snake_Init(GameCtr_FetchPointToDraw);
 
   DrawUtil_FillBackGroundColor();
@@ -41,13 +42,14 @@ SnakeCtr GameCtr_Init(void) {
 
   DrawUtil_DrawFrameDone();
 
-  return sc;
+  return (GameCtrl)sc;
 }
 
-void GameCtr_Run(SnakeCtr sc,
+void GameCtr_Run(GameCtrl gc,
                  uint16_t touch_pos_x, 
                  uint16_t touch_pos_y,
                  bool touch_trigger) {
+  SnakeCtr sc = (SnakeCtr) gc;
   if (touch_trigger) {
     Snake_TransPosToDirect(sc, touch_pos_x, touch_pos_y);
   }

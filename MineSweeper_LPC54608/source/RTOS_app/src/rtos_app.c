@@ -33,7 +33,7 @@ static xTaskHandle lcd_task_handle;
  ******************************************************************************/
 
 static void GameController(void *pvParameters) {
-  SnakeCtr sh = GameCtr_Init();
+  GameCtrl gc = GameCtr_Init();
 
   uint32_t ulNotifiedValue;
   while(1) {
@@ -42,7 +42,7 @@ static void GameController(void *pvParameters) {
                     &ulNotifiedValue,
                     configTICK_RATE_HZ);
 
-    GameCtr_Run(sh, pos.pos_y, pos.pos_x, 
+    GameCtr_Run(gc, pos.pos_y, pos.pos_x, 
                 (bool)(ulNotifiedValue & POS_READY));
     vTaskDelay(1);
   }
