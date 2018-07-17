@@ -34,11 +34,11 @@ typedef enum {
   LEFT,
   RIGHT,
   RANGE_OUT,
-} TouchDirection;
+} MoveDirection;
 
 typedef struct _SnakeHandle {
   RINGBUFF_T snake_container;
-  TouchDirection move_direct;
+  MoveDirection move_direct;
   FetchPointFunc FetchPoint;
 } SnakeHandle;
 
@@ -59,7 +59,7 @@ static SnakePixelPos snake_map_buf[SNAKE_LEN_MAX];
 
 // If the point goes out of image range, rolling it to another side
 static void Snake_GetNewHeadPos(const SnakePixelPos *cur_head, 
-                                TouchDirection dir,
+                                MoveDirection dir,
                                 SnakePixelPos *new_head) {
   *new_head = *cur_head;
   switch(dir){
@@ -96,6 +96,31 @@ static void Snake_Lengthen(SnakeHandle *handle) {
   RingBuffer_Insert(ring_buf, (void *)&new_head);
 }
 
+static bool Snake_PermittedTurning(MoveDirection pre, 
+                                   MoveDirection cur) {
+  if (pre == cur) {
+    return false;
+  }
+  
+  bool ret = true;
+  switch (pre) {
+    case UP:
+      if (cur == DOWN) ret = false;
+      break;
+    case DOWN:
+      if (cur == UP) ret = false;
+      break;
+    case LEFT:
+      if (cur == RIGHT) ret = false;
+      break;
+    case RIGHT:
+      if (cur == LEFT) ret = false;
+      break;
+    default:
+      break;
+  }
+  return ret;
+}
 
 /*******************************************************************************
  * Public
@@ -166,10 +191,14 @@ void Snake_TransPosToDirect(SnakeCtr sc,
   */ 
   SnakeHandle *handle = (SnakeHandle *)sc;
 
-  handle->move_direct =  
+  MoveDirection cur_direct =  
     (touch_pos_x < IMG_WIDTH / 4)     ? LEFT : 
     (touch_pos_x > IMG_WIDTH * 3 / 4) ? RIGHT : 
     (touch_pos_y < IMG_HEIGHT / 2)    ? UP : 
     (touch_pos_y > IMG_HEIGHT / 2)    ? DOWN : RANGE_OUT;
+
+  if (Snake_PermittedTurning(handle->move_direct, cur_direct)) {
+    handle->move_direct = cur_direct;
+  }
 }
 
