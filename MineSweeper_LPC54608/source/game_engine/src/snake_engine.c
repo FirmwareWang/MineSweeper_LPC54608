@@ -136,14 +136,21 @@ void Snake_Draw(SnakeCtr sc){
   }
 }
 
-void Snake_Move(SnakeCtr sc) {
+bool Snake_TakeAction(SnakeCtr sc) {
   SnakeHandle *handle = (SnakeHandle *)sc;
-  SnakePixelPos temp;
-  Snake_Lengthen(handle);
+  RINGBUFF_T *ring_buf = &(handle->snake_container);
+
+  SnakePixelPos cur_head, new_head, temp;
+  RingBuffer_GetHead(ring_buf, &cur_head);
+  Snake_GetNewHeadPos(&cur_head, handle->move_direct, &new_head);
+  RingBuffer_Insert(ring_buf, (void *)&new_head);
   RingBuffer_Pop(&(handle->snake_container), &temp);
+
+  return true;
 }
 
 SnakeCtr Snake_Init(FetchPointFunc FetchPoint) {
+  // TODO: FreeRTOS Heap may be a better choise.
   SnakeHandle *handle = (SnakeHandle *)malloc(sizeof(SnakeHandle) * 1);
   RingBuffer_Init(&(handle->snake_container),
                   (void *) snake_map_buf,

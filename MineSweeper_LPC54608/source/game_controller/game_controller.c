@@ -53,6 +53,6 @@ void GameCtr_Run(GameCtrl gc,
   if (touch_trigger) {
     Snake_TransPosToDirect(sc, touch_pos_x, touch_pos_y);
   }
-  Snake_Move(sc);
+  Snake_TakeAction(sc);
   GameCtr_UpdateDisplay(sc);
 }
