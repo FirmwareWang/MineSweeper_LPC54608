@@ -44,13 +44,13 @@ SnakeCtr GameCtr_Init(void) {
   return sc;
 }
 
-void GameCtr_TransPosToDirect(SnakeCtr sc, 
-                              uint16_t touch_pos_x, 
-                              uint16_t touch_pos_y) {
-  Snake_TransPosToDirect(sc, touch_pos_x, touch_pos_y);
-}
-
-void GameCtr_Run(SnakeCtr sc) {
+void GameCtr_Run(SnakeCtr sc,
+                 uint16_t touch_pos_x, 
+                 uint16_t touch_pos_y,
+                 bool touch_trigger) {
+  if (touch_trigger) {
+    Snake_TransPosToDirect(sc, touch_pos_x, touch_pos_y);
+  }
   Snake_Move(sc);
   GameCtr_UpdateDisplay(sc);
 }

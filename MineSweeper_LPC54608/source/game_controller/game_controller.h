@@ -13,10 +13,9 @@
 
 SnakeCtr GameCtr_Init(void);
 
-void GameCtr_TransPosToDirect(SnakeCtr sc, 
-                              uint16_t touch_pos_x, 
-                              uint16_t touch_pos_y);
-
-void GameCtr_Run(SnakeCtr sc);
+void GameCtr_Run(SnakeCtr sc,
+                 uint16_t touch_pos_x, 
+                 uint16_t touch_pos_y,
+                 bool touch_trigger);
 
 #endif /* GAME_CONTROLLER_GAME_CONTROLLER_H_ */

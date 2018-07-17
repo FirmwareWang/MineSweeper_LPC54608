@@ -41,11 +41,9 @@ static void GameController(void *pvParameters) {
                     0xFFFFFFFFUL,
                     &ulNotifiedValue,
                     configTICK_RATE_HZ);
-    if ((ulNotifiedValue & POS_READY) != 0) {
-      // The coordinate in touch screen is inverse to that in LCD
-      GameCtr_TransPosToDirect(sh, pos.pos_y, pos.pos_x);
-    }
-    GameCtr_Run(sh);
+
+    GameCtr_Run(sh, pos.pos_y, pos.pos_x, 
+                (bool)(ulNotifiedValue & POS_READY));
     vTaskDelay(1);
   }
 }
