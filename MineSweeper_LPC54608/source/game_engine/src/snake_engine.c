@@ -54,39 +54,42 @@ static DrawPos snake_map_buf[SNAKE_LEN_MAX];
  ******************************************************************************/
 
 // If the point goes out of image range, rolling it to another side
-static DrawPos Snake_NextHeadPoint(const DrawPos *cur_head, 
-                                   TouchDirection dir) {
-  DrawPos next_head = *cur_head;
+static void Snake_GetNewHeadPos(const DrawPos *cur_head, 
+                                TouchDirection dir,
+                                DrawPos *new_head) {
+  *new_head = *cur_head;
   switch(dir){
     case UP:
-      next_head.y = (cur_head->y < SNAKE_POINTS_STEP_PIXCEL) ? 
-                    APP_IMG_HEIGHT : cur_head->y - SNAKE_POINTS_STEP_PIXCEL;
+      new_head->y = 
+        (cur_head->y < SNAKE_POINTS_STEP_PIXCEL) ?
+        APP_IMG_HEIGHT : cur_head->y - SNAKE_POINTS_STEP_PIXCEL;
       break;
     case DOWN:
-      next_head.y = (APP_IMG_HEIGHT - cur_head->y < SNAKE_POINTS_STEP_PIXCEL) ? 
-                    0 : cur_head->y + SNAKE_POINTS_STEP_PIXCEL;
+      new_head->y = 
+        (APP_IMG_HEIGHT - cur_head->y < SNAKE_POINTS_STEP_PIXCEL) ?
+        0 : cur_head->y + SNAKE_POINTS_STEP_PIXCEL;
       break;
     case LEFT:
-      next_head.x = (cur_head->x < SNAKE_POINTS_STEP_PIXCEL) ? 
-                    APP_IMG_WIDTH : cur_head->x - SNAKE_POINTS_STEP_PIXCEL;
+      new_head->x = 
+        (cur_head->x < SNAKE_POINTS_STEP_PIXCEL) ?
+        APP_IMG_WIDTH : cur_head->x - SNAKE_POINTS_STEP_PIXCEL;
       break;
     case RIGHT:
-      next_head.x = (APP_IMG_WIDTH - cur_head->x < SNAKE_POINTS_STEP_PIXCEL) ? 
-                    0 : cur_head->x + SNAKE_POINTS_STEP_PIXCEL;
+      new_head->x = 
+        (APP_IMG_WIDTH - cur_head->x < SNAKE_POINTS_STEP_PIXCEL) ?
+        0 : cur_head->x + SNAKE_POINTS_STEP_PIXCEL;
       break;
     default:
       break;
   }
-
-  return next_head;
 }
 
 static void Snake_Lengthen(SnakeHandle *handle) {
   RINGBUFF_T *ring_buf = &(handle->snake_container);
-  DrawPos cur_head;
+  DrawPos cur_head, new_head;
   RingBuffer_GetHead(ring_buf, &cur_head);
-  DrawPos new_head = Snake_NextHeadPoint(&cur_head, handle->move_direct);
-  RingBuffer_Insert(ring_buf, &new_head);
+  Snake_GetNewHeadPos(&cur_head, handle->move_direct, &new_head);
+  RingBuffer_Insert(ring_buf, (void *)&new_head);
 }
 
 static void Snake_Move(SnakeHandle *handle) {
