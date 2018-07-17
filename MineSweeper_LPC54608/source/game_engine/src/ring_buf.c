@@ -14,6 +14,8 @@
 
 #define RB_INDH(rb) ((rb)->head & ((rb)->count - 1))
 #define RB_INDT(rb) ((rb)->tail & ((rb)->count - 1))
+#define RB_INDC(rb) ((rb)->cursor & ((rb)->count - 1))
+#define CURSOR_HEAD(rb) ((rb)->head - 1)
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -35,7 +37,7 @@ int RingBuffer_Init(RINGBUFF_T *RingBuff,
   RingBuff->data = buffer;
   RingBuff->count = count;
   RingBuff->itemSz = itemSize;
-  RingBuff->head = RingBuff->tail = 0;
+  RingBuff->head = RingBuff->tail = RingBuff->cursor = 0;
   if (!cpyFunc) {
     cpyFunc = memcpy;
   }
@@ -72,22 +74,47 @@ int RingBuffer_Pop(RINGBUFF_T *RingBuff, void *data) {
   ptr += RB_INDT(RingBuff) * RingBuff->itemSz;
   RingBuff->copy(data, ptr, RingBuff->itemSz);
   RingBuff->tail++;
+  RingBuff->cursor++;
+
+  return 1;
+}
+
+void RingBuffer_Seek(RINGBUFF_T *RingBuff, RingBufWhence whence) {
+  switch (whence) {
+    case RING_BUF_HEAD:
+      RingBuff->cursor = CURSOR_HEAD(RingBuff);
+      break;
+    case RING_BUF_TAIL:
+      RingBuff->cursor = RingBuff->tail;
+      break;
+    default:
+      break;
+  }
+}
+
+int RingBuffer_GetItem(RINGBUFF_T *RingBuff, void *data){
+  uint8_t *ptr = RingBuff->data;
+
+  if (RingBuffer_IsEmpty(RingBuff)) {
+    return 0;
+  }
+  if ((RingBuff->cursor < RingBuff->tail) ||
+      (RingBuff->cursor > CURSOR_HEAD(RingBuff))){
+    return 0;
+  }
+
+  ptr += RB_INDC(RingBuff) * RingBuff->itemSz;
+  RingBuff->copy(data, ptr, RingBuff->itemSz);
+  // TODO: need to impove
+  RingBuff->cursor = (RingBuff->cursor == CURSOR_HEAD(RingBuff)) ? 
+                      CURSOR_HEAD(RingBuff) : RingBuff->cursor + 1;
 
   return 1;
 }
 
 // TODO: add the unit test for ring buffer API
 int RingBuffer_GetHead(RINGBUFF_T *RingBuff, void *data) {
-  uint8_t *ptr = RingBuff->data;
+  RingBuffer_Seek(RingBuff, RING_BUF_HEAD);
 
-  /* We cannot pop when queue is empty */
-  if (RingBuffer_IsEmpty(RingBuff)) {
-    return 0;
-  }
-
-  // TODO: impove the head search
-  ptr += (RB_INDH(RingBuff) - 1) * RingBuff->itemSz;
-  RingBuff->copy(data, ptr, RingBuff->itemSz);
-
-  return 1;
+  return RingBuffer_GetItem(RingBuff, data);
 }

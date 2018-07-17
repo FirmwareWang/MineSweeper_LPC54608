@@ -19,8 +19,14 @@ typedef struct {
   int itemSz;
   uint32_t head;
   uint32_t tail;
+  uint32_t cursor; /* track tail by default */
   void *(*copy)(void *dst, const void *src, uint32_t len);
 } RINGBUFF_T;
+
+typedef enum {
+  RING_BUF_TAIL = 0,
+  RING_BUF_HEAD,
+} RingBufWhence;
 
 /**
  * @def		RB_VHEAD(rb)
@@ -127,5 +133,9 @@ int RingBuffer_Insert(RINGBUFF_T *RingBuff, const void *data);
 int RingBuffer_Pop(RINGBUFF_T *RingBuff, void *data);
 
 int RingBuffer_GetHead(RINGBUFF_T *RingBuff, void *data);
+
+void RingBuffer_Seek(RINGBUFF_T *RingBuff, RingBufWhence whence);
+
+int RingBuffer_GetItem(RINGBUFF_T *RingBuff, void *data);
 
 #endif /* GAME_ENGINE_INC_RING_BUF_H_ */

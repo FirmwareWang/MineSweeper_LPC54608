@@ -96,12 +96,11 @@ static void Snake_Move(SnakeHandle *handle) {
 }
 
 static void Snake_Draw(RINGBUFF_T *snake_map){
+  RingBuffer_Seek(snake_map, RING_BUF_TAIL);
   for (int i = 0; i < RingBuffer_GetCount(snake_map); i++) {
     DrawPos point;
-    if(RingBuffer_Pop(snake_map, &point)) {
-      DrawUtil_DrawPoint(&point);
-      RingBuffer_Insert(snake_map, &point);
-    }
+    RingBuffer_GetItem(snake_map, (void *)&point);
+    DrawUtil_DrawPoint(&point);
   }
 }
 
