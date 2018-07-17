@@ -8,6 +8,7 @@
 #include "snake_engine.h"
 #include "ring_buf.h"
 #include "display_config.h"
+#include "fsl_rng.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -37,16 +38,17 @@ typedef enum {
   RANGE_OUT,
 } MoveDirection;
 
-typedef struct _SnakeHandle {
-  RINGBUFF_T snake_container;
-  MoveDirection move_direct;
-  FetchPointFunc FetchPoint;
-} SnakeHandle;
-
 typedef struct _DrawPos {
   uint16_t x;
   uint16_t y;
 } SnakePixelPos;
+
+typedef struct _SnakeHandle {
+  RINGBUFF_T snake_container;
+  SnakePixelPos food_pos;
+  MoveDirection move_direct;
+  FetchPointFunc FetchPoint;
+} SnakeHandle;
 
 /*******************************************************************************
  * Globals
@@ -108,6 +110,11 @@ static void Snake_GenInitMap(SnakeHandle *handle, uint16_t init_len) {
   }
 }
 
+static void Snake_GenRandomFood(SnakePixelPos *food) {
+  food->x = (uint16_t)(RNG_GetRandomData() % APP_IMG_WIDTH);
+  food->y = (uint16_t)(RNG_GetRandomData() % APP_IMG_HEIGHT);
+}
+
 static bool Snake_Suicide(RINGBUFF_T *snake_map, const SnakePixelPos *head) {
   RingBuffer_Seek(snake_map, RING_BUF_TAIL);
   for (int i = 0; i < RingBuffer_GetCount(snake_map); i++) {
@@ -158,6 +165,9 @@ void Snake_Draw(SnakeCtr sc){
     RingBuffer_GetItem(snake_map, (void *)&point);
     handle->FetchPoint(point.x, point.y);
   }
+
+  // Fetch the food position
+  handle->FetchPoint(handle->food_pos.x, handle->food_pos.y);
 }
 
 bool Snake_TakeAction(SnakeCtr sc) {
@@ -188,6 +198,8 @@ SnakeCtr Snake_Init(FetchPointFunc FetchPoint) {
                   NULL);
   handle->move_direct = RIGHT;
   handle->FetchPoint = FetchPoint;
+
+  Snake_GenRandomFood(&handle->food_pos);
 
   Snake_GenInitMap(handle, INIT_SNAKE_LEN);
 
