@@ -18,6 +18,7 @@
 
 #define INIT_SNAKE_POS_X 0
 #define INIT_SNAKE_POS_Y 0
+#define INIT_SNAKE_LEN   3
 
 #define SNAKE_POINTS_PITCH_PIXEL 1
 #define SNAKE_POINTS_STEP_PIXEL \
@@ -88,12 +89,18 @@ static void Snake_GetNewHeadPos(const SnakePixelPos *cur_head,
   }
 }
 
-static void Snake_Lengthen(SnakeHandle *handle) {
-  RINGBUFF_T *ring_buf = &(handle->snake_container);
-  SnakePixelPos cur_head, new_head;
-  RingBuffer_GetHead(ring_buf, &cur_head);
-  Snake_GetNewHeadPos(&cur_head, handle->move_direct, &new_head);
-  RingBuffer_Insert(ring_buf, (void *)&new_head);
+static void Snake_GenInitMap(SnakeHandle *handle, uint16_t init_len) {
+  // generate first point
+  SnakePixelPos head = {INIT_SNAKE_POS_X, INIT_SNAKE_POS_Y};
+  RingBuffer_Insert(&(handle->snake_container), &head);
+  init_len--;
+
+  SnakePixelPos new_head;
+  for (int i = 0; i < init_len; i++) {
+    Snake_GetNewHeadPos(&head, handle->move_direct, &new_head);
+    RingBuffer_Insert(&(handle->snake_container), &new_head);
+    head = new_head;
+  }
 }
 
 static bool Snake_PermittedTurning(MoveDirection pre, 
@@ -160,10 +167,7 @@ SnakeCtr Snake_Init(FetchPointFunc FetchPoint) {
   handle->move_direct = RIGHT;
   handle->FetchPoint = FetchPoint;
 
-  SnakePixelPos init_pos = {INIT_SNAKE_POS_X, INIT_SNAKE_POS_Y};
-  RingBuffer_Insert(&(handle->snake_container), &init_pos);
-  Snake_Lengthen(handle);
-  Snake_Lengthen(handle);
+  Snake_GenInitMap(handle, INIT_SNAKE_LEN);
 
   return (SnakeCtr)handle;
 }
