@@ -24,6 +24,8 @@
 #define SNAKE_POINTS_PITCH_PIXEL 1
 #define SNAKE_POINTS_STEP_PIXEL \
   (SNAKE_POINTS_PITCH_PIXEL + POINT_SIZE_PIXEL)
+#define ROUND_TO_MULTI_PTS_STEP(val) \
+  (val - (val % SNAKE_POINTS_STEP_PIXEL))
 // the buffer length should be the 2^n
 #define SNAKE_LEN_MAX 1024
 
@@ -111,8 +113,10 @@ static void Snake_GenInitMap(SnakeHandle *handle, uint16_t init_len) {
 }
 
 static void Snake_GenRandomFood(SnakePixelPos *food) {
-  food->x = (uint16_t)(RNG_GetRandomData() % APP_IMG_WIDTH);
-  food->y = (uint16_t)(RNG_GetRandomData() % APP_IMG_HEIGHT);
+  food->x = (uint16_t)
+    ROUND_TO_MULTI_PTS_STEP(RNG_GetRandomData() % APP_IMG_WIDTH);
+  food->y = (uint16_t)
+    ROUND_TO_MULTI_PTS_STEP(RNG_GetRandomData() % APP_IMG_HEIGHT);
 }
 
 static bool Snake_Suicide(RINGBUFF_T *snake_map, const SnakePixelPos *head) {
@@ -182,8 +186,13 @@ bool Snake_TakeAction(SnakeCtr sc) {
   }
 
   RingBuffer_Insert(ring_buf, (void *)&new_head);
-  SnakePixelPos temp;
-  RingBuffer_Pop(ring_buf, &temp);
+  // Pop the tail position if succeeding to eat
+  if (Snake_TwoPosIsSame(&new_head, &handle->food_pos)) {
+    Snake_GenRandomFood(&handle->food_pos);
+  } else {
+    SnakePixelPos temp;
+    RingBuffer_Pop(ring_buf, &temp);
+  }
 
   return true;
 }
