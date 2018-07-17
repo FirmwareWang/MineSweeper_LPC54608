@@ -75,3 +75,19 @@ int RingBuffer_Pop(RINGBUFF_T *RingBuff, void *data) {
 
   return 1;
 }
+
+// TODO: add the unit test for ring buffer API
+int RingBuffer_GetHead(RINGBUFF_T *RingBuff, void *data) {
+  uint8_t *ptr = RingBuff->data;
+
+  /* We cannot pop when queue is empty */
+  if (RingBuffer_IsEmpty(RingBuff)) {
+    return 0;
+  }
+
+  // TODO: impove the head search
+  ptr += (RB_INDH(RingBuff) - 1) * RingBuff->itemSz;
+  RingBuff->copy(data, ptr, RingBuff->itemSz);
+
+  return 1;
+}

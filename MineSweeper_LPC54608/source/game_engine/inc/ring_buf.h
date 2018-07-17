@@ -126,4 +126,6 @@ int RingBuffer_Insert(RINGBUFF_T *RingBuff, const void *data);
  */
 int RingBuffer_Pop(RINGBUFF_T *RingBuff, void *data);
 
+int RingBuffer_GetHead(RINGBUFF_T *RingBuff, void *data);
+
 #endif /* GAME_ENGINE_INC_RING_BUF_H_ */

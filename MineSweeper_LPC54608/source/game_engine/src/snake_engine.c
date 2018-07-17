@@ -8,6 +8,7 @@
 #include "snake_engine.h"
 #include "lcd_tft.h"
 #include "draw_util.h"
+#include "ring_buf.h"
 #include "display_config.h"
 #include <stdint.h>
 #include <stdbool.h>
@@ -20,8 +21,14 @@
 #define INIT_SNAKE_POS_X 0
 #define INIT_SNAKE_POS_Y 0
 
-#define APP_IMG_HEIGHT (IMG_HEIGHT - POINT_SIZE_PIXEL)
-#define APP_IMG_WIDTH  (IMG_WIDTH - POINT_SIZE_PIXEL)
+#define SNAKE_POINTS_PITCH_PIXCEL 1
+#define SNAKE_POINTS_STEP_PIXCEL \
+  (SNAKE_POINTS_PITCH_PIXCEL + POINT_SIZE_PIXEL)
+// the buffer length should be the 2^n
+#define SNAKE_LEN_MAX 1024
+
+#define APP_IMG_HEIGHT (IMG_HEIGHT - SNAKE_POINTS_STEP_PIXCEL)
+#define APP_IMG_WIDTH  (IMG_WIDTH - SNAKE_POINTS_STEP_PIXCEL)
 
 typedef enum {
   UP = 0,
@@ -32,7 +39,7 @@ typedef enum {
 } TouchDirection;
 
 typedef struct _SnakeStatus {
-  DrawPos pos;
+  RINGBUFF_T snake_container;
   TouchDirection move_direct;
 } SnakeStatus;
 
@@ -40,38 +47,67 @@ typedef struct _SnakeStatus {
  * Globals
  ******************************************************************************/
 
+static DrawPos snake_map_buf[SNAKE_LEN_MAX];
+
 /*******************************************************************************
  * Pravite 
  ******************************************************************************/
 
-
 // If the point goes out of image range, rolling it to another side
-static void Snake_UpdateCurPos(SnakeStatus *stat) {
-  switch(stat->move_direct){
+static DrawPos Snake_NextHeadPoint(const DrawPos *cur_head, 
+                                   TouchDirection dir) {
+  DrawPos next_head = *cur_head;
+  switch(dir){
     case UP:
-      stat->pos.y = (stat->pos.y < POINT_SIZE_PIXEL) ? 
-                    APP_IMG_HEIGHT : stat->pos.y - POINT_SIZE_PIXEL;
+      next_head.y = (cur_head->y < SNAKE_POINTS_STEP_PIXCEL) ? 
+                    APP_IMG_HEIGHT : cur_head->y - SNAKE_POINTS_STEP_PIXCEL;
       break;
     case DOWN:
-      stat->pos.y = (APP_IMG_HEIGHT - stat->pos.y < POINT_SIZE_PIXEL) ? 
-                    0 : stat->pos.y + POINT_SIZE_PIXEL;
+      next_head.y = (APP_IMG_HEIGHT - cur_head->y < SNAKE_POINTS_STEP_PIXCEL) ? 
+                    0 : cur_head->y + SNAKE_POINTS_STEP_PIXCEL;
       break;
     case LEFT:
-      stat->pos.x = (stat->pos.x < POINT_SIZE_PIXEL) ? 
-                    APP_IMG_WIDTH : stat->pos.x - POINT_SIZE_PIXEL;
+      next_head.x = (cur_head->x < SNAKE_POINTS_STEP_PIXCEL) ? 
+                    APP_IMG_WIDTH : cur_head->x - SNAKE_POINTS_STEP_PIXCEL;
       break;
     case RIGHT:
-      stat->pos.x = (APP_IMG_WIDTH - stat->pos.x < POINT_SIZE_PIXEL) ? 
-                    0 : stat->pos.x + POINT_SIZE_PIXEL;
+      next_head.x = (APP_IMG_WIDTH - cur_head->x < SNAKE_POINTS_STEP_PIXCEL) ? 
+                    0 : cur_head->x + SNAKE_POINTS_STEP_PIXCEL;
       break;
     default:
       break;
   }
+
+  return next_head;
 }
 
-static void Snake_UpdateDisplay(const DrawPos *pos) {
+static void Snake_Lengthen(SnakeStatus *handle) {
+  RINGBUFF_T *ring_buf = &(handle->snake_container);
+  DrawPos cur_head;
+  RingBuffer_GetHead(ring_buf, &cur_head);
+  DrawPos new_head = Snake_NextHeadPoint(&cur_head, handle->move_direct);
+  RingBuffer_Insert(ring_buf, &new_head);
+}
+
+static void Snake_Move(SnakeStatus *handle) {
+  DrawPos temp;
+  Snake_Lengthen(handle);
+  RingBuffer_Pop(&(handle->snake_container), &temp);
+}
+
+static void Snake_Draw(RINGBUFF_T *snake_map){
+  for (int i = 0; i < RingBuffer_GetCount(snake_map); i++) {
+    DrawPos point;
+    if(RingBuffer_Pop(snake_map, &point)) {
+      DrawUtil_DrawPoint(&point);
+      RingBuffer_Insert(snake_map, &point);
+    }
+  }
+}
+
+static void Snake_UpdateDisplay(RINGBUFF_T *snake_map) {
   DrawUtil_FillBackGroundColor();
-  DrawUtil_DrawPoint(pos);
+  Snake_Draw(snake_map);
   LCD_Update(DrawUtil_InactFrameAddr());
 
   DrawUtil_DrawFrameDone();
@@ -83,12 +119,20 @@ static void Snake_UpdateDisplay(const DrawPos *pos) {
 
 SnakeHandle Snake_Init(void) {
   SnakeStatus *handle = (SnakeStatus *)malloc(sizeof(SnakeStatus) * 1);
-  handle->pos.x = INIT_SNAKE_POS_X;
-  handle->pos.y = INIT_SNAKE_POS_Y;
+  RingBuffer_Init(&(handle->snake_container),
+                  (void *) snake_map_buf,
+                  sizeof(snake_map_buf[0]),
+                  SNAKE_LEN_MAX,
+                  NULL);
   handle->move_direct = RIGHT;
 
+  DrawPos init_pos = {INIT_SNAKE_POS_X, INIT_SNAKE_POS_Y};
+  RingBuffer_Insert(&(handle->snake_container), &init_pos);
+  Snake_Lengthen(handle);
+  Snake_Lengthen(handle);
+
   DrawUtil_FillBackGroundColor();
-  DrawUtil_DrawPoint(&handle->pos);
+  Snake_Draw(&(handle->snake_container));
 
   LCD_Setup(DrawUtil_InactFrameAddr());
 
@@ -136,7 +180,7 @@ void Snake_TransPosToDirect(SnakeHandle sh,
 
 void Snake_ControlPoint(SnakeHandle sh) {
   SnakeStatus *stat = (SnakeStatus *)sh;
-  Snake_UpdateCurPos(stat);
-  Snake_UpdateDisplay(&stat->pos);
+  Snake_Move(stat);
+  Snake_UpdateDisplay(&(stat->snake_container));
 }
 
