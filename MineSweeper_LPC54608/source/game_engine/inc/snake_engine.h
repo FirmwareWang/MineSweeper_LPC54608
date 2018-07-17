@@ -15,10 +15,12 @@ typedef void *SnakeCtr;
 
 SnakeCtr Snake_Init(void);
 
-void Snake_TransPosToDirect(SnakeCtr sh, 
+void Snake_TransPosToDirect(SnakeCtr sc, 
                             uint16_t touch_pos_x, 
                             uint16_t touch_pos_y);
 
-void Snake_ControlPoint(SnakeCtr sh);
+void Snake_Draw(SnakeCtr sc);
+
+void Snake_Move(SnakeCtr sc);
 
 #endif /* GAME_ENGINE_INC_SNAKE_ENGINE_H_ */

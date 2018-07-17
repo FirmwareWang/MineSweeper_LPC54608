@@ -6,7 +6,6 @@
  */
 
 #include "snake_engine.h"
-#include "lcd_tft.h"
 #include "draw_util.h"
 #include "ring_buf.h"
 #include "display_config.h"
@@ -92,13 +91,12 @@ static void Snake_Lengthen(SnakeHandle *handle) {
   RingBuffer_Insert(ring_buf, (void *)&new_head);
 }
 
-static void Snake_Move(SnakeHandle *handle) {
-  DrawPos temp;
-  Snake_Lengthen(handle);
-  RingBuffer_Pop(&(handle->snake_container), &temp);
-}
 
-static void Snake_Draw(RINGBUFF_T *snake_map){
+/*******************************************************************************
+ * Public
+ ******************************************************************************/
+void Snake_Draw(SnakeCtr sc){
+  RINGBUFF_T *snake_map = &((SnakeHandle *)sc)->snake_container;
   RingBuffer_Seek(snake_map, RING_BUF_TAIL);
   for (int i = 0; i < RingBuffer_GetCount(snake_map); i++) {
     DrawPos point;
@@ -107,17 +105,12 @@ static void Snake_Draw(RINGBUFF_T *snake_map){
   }
 }
 
-static void Snake_UpdateDisplay(RINGBUFF_T *snake_map) {
-  DrawUtil_FillBackGroundColor();
-  Snake_Draw(snake_map);
-  LCD_Update(DrawUtil_InactFrameAddr());
-
-  DrawUtil_DrawFrameDone();
+void Snake_Move(SnakeCtr sc) {
+  SnakeHandle *handle = (SnakeHandle *)sc;
+  DrawPos temp;
+  Snake_Lengthen(handle);
+  RingBuffer_Pop(&(handle->snake_container), &temp);
 }
-
-/*******************************************************************************
- * Public
- ******************************************************************************/
 
 SnakeCtr Snake_Init(void) {
   SnakeHandle *handle = (SnakeHandle *)malloc(sizeof(SnakeHandle) * 1);
@@ -132,13 +125,6 @@ SnakeCtr Snake_Init(void) {
   RingBuffer_Insert(&(handle->snake_container), &init_pos);
   Snake_Lengthen(handle);
   Snake_Lengthen(handle);
-
-  DrawUtil_FillBackGroundColor();
-  Snake_Draw(&(handle->snake_container));
-
-  LCD_Setup(DrawUtil_InactFrameAddr());
-
-  DrawUtil_DrawFrameDone();
 
   return (SnakeCtr)handle;
 }
@@ -178,11 +164,5 @@ void Snake_TransPosToDirect(SnakeCtr sc,
     (touch_pos_x > IMG_WIDTH * 3 / 4) ? RIGHT : 
     (touch_pos_y < IMG_HEIGHT / 2)    ? UP : 
     (touch_pos_y > IMG_HEIGHT / 2)    ? DOWN : RANGE_OUT;
-}
-
-void Snake_ControlPoint(SnakeCtr sc) {
-  SnakeHandle *handle = (SnakeHandle *)sc;
-  Snake_Move(handle);
-  Snake_UpdateDisplay(&(handle->snake_container));
 }
 

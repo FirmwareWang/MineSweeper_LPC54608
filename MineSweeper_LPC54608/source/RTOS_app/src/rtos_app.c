@@ -5,7 +5,7 @@
  *      Author: wangjingli
  */
 
-#include "snake_engine.h"
+#include "game_controller.h"
 #include "touch_screen.h"
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
@@ -33,7 +33,7 @@ static xTaskHandle lcd_task_handle;
  ******************************************************************************/
 
 static void GameController(void *pvParameters) {
-  SnakeCtr sh = Snake_Init();
+  SnakeCtr sh = GameCtr_Init();
 
   uint32_t ulNotifiedValue;
   while(1) {
@@ -43,9 +43,9 @@ static void GameController(void *pvParameters) {
                     configTICK_RATE_HZ);
     if ((ulNotifiedValue & POS_READY) != 0) {
       // The coordinate in touch screen is inverse to that in LCD
-      Snake_TransPosToDirect(sh, pos.pos_y, pos.pos_x);
+      GameCtr_TransPosToDirect(sh, pos.pos_y, pos.pos_x);
     }
-    Snake_ControlPoint(sh);
+    GameCtr_Run(sh);
     vTaskDelay(1);
   }
 }
