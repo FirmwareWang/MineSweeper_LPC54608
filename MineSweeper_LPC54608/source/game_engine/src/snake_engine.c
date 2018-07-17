@@ -20,14 +20,14 @@
 #define INIT_SNAKE_POS_X 0
 #define INIT_SNAKE_POS_Y 0
 
-#define SNAKE_POINTS_PITCH_PIXCEL 1
-#define SNAKE_POINTS_STEP_PIXCEL \
-  (SNAKE_POINTS_PITCH_PIXCEL + POINT_SIZE_PIXEL)
+#define SNAKE_POINTS_PITCH_PIXEL 1
+#define SNAKE_POINTS_STEP_PIXEL \
+  (SNAKE_POINTS_PITCH_PIXEL + POINT_SIZE_PIXEL)
 // the buffer length should be the 2^n
 #define SNAKE_LEN_MAX 1024
 
-#define APP_IMG_HEIGHT (IMG_HEIGHT - SNAKE_POINTS_STEP_PIXCEL)
-#define APP_IMG_WIDTH  (IMG_WIDTH - SNAKE_POINTS_STEP_PIXCEL)
+#define APP_IMG_HEIGHT (IMG_HEIGHT - SNAKE_POINTS_STEP_PIXEL)
+#define APP_IMG_WIDTH  (IMG_WIDTH - SNAKE_POINTS_STEP_PIXEL)
 
 typedef enum {
   UP = 0,
@@ -65,23 +65,23 @@ static void Snake_GetNewHeadPos(const SnakePixelPos *cur_head,
   switch(dir){
     case UP:
       new_head->y = 
-        (cur_head->y < SNAKE_POINTS_STEP_PIXCEL) ?
-        APP_IMG_HEIGHT : cur_head->y - SNAKE_POINTS_STEP_PIXCEL;
+        (cur_head->y < SNAKE_POINTS_STEP_PIXEL) ?
+        APP_IMG_HEIGHT : cur_head->y - SNAKE_POINTS_STEP_PIXEL;
       break;
     case DOWN:
       new_head->y = 
-        (APP_IMG_HEIGHT - cur_head->y < SNAKE_POINTS_STEP_PIXCEL) ?
-        0 : cur_head->y + SNAKE_POINTS_STEP_PIXCEL;
+        (APP_IMG_HEIGHT - cur_head->y < SNAKE_POINTS_STEP_PIXEL) ?
+        0 : cur_head->y + SNAKE_POINTS_STEP_PIXEL;
       break;
     case LEFT:
       new_head->x = 
-        (cur_head->x < SNAKE_POINTS_STEP_PIXCEL) ?
-        APP_IMG_WIDTH : cur_head->x - SNAKE_POINTS_STEP_PIXCEL;
+        (cur_head->x < SNAKE_POINTS_STEP_PIXEL) ?
+        APP_IMG_WIDTH : cur_head->x - SNAKE_POINTS_STEP_PIXEL;
       break;
     case RIGHT:
       new_head->x = 
-        (APP_IMG_WIDTH - cur_head->x < SNAKE_POINTS_STEP_PIXCEL) ?
-        0 : cur_head->x + SNAKE_POINTS_STEP_PIXCEL;
+        (APP_IMG_WIDTH - cur_head->x < SNAKE_POINTS_STEP_PIXEL) ?
+        0 : cur_head->x + SNAKE_POINTS_STEP_PIXEL;
       break;
     default:
       break;
