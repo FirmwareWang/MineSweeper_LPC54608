@@ -81,15 +81,15 @@ static void DrawUtil_Draw2BPPLine(uint8_t *line, uint16_t start,
 }
 
 
-void DrawUtil_DrawPoint(const DrawPos *pos) {
+void DrawUtil_DrawPoint(uint16_t base_row, uint16_t base_column) {
   /* Foreground color. */
   static uint8_t fgColor = 1U;
 
   LineBuf buf = (LineBuf)frame_buf_addr[inactive_buf_idx];
 
-  for (int i = pos->y; i < pos->y + POINT_SIZE_PIXEL; i++) {
-    DrawUtil_Draw2BPPLine((uint8_t *)buf[i], pos->x, 
-                          pos->x + POINT_SIZE_PIXEL, fgColor);
+  for (int i = base_row; i < base_row + POINT_SIZE_PIXEL; i++) {
+    DrawUtil_Draw2BPPLine((uint8_t *)buf[i], base_column, 
+                          base_column + POINT_SIZE_PIXEL, fgColor);
   }
 }
 

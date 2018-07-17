@@ -42,20 +42,25 @@ typedef struct _SnakeHandle {
   TouchDirection move_direct;
 } SnakeHandle;
 
+typedef struct _DrawPos {
+  uint16_t x;
+  uint16_t y;
+} SnakePixelPos;
+
 /*******************************************************************************
  * Globals
  ******************************************************************************/
 
-static DrawPos snake_map_buf[SNAKE_LEN_MAX];
+static SnakePixelPos snake_map_buf[SNAKE_LEN_MAX];
 
 /*******************************************************************************
  * Pravite 
  ******************************************************************************/
 
 // If the point goes out of image range, rolling it to another side
-static void Snake_GetNewHeadPos(const DrawPos *cur_head, 
+static void Snake_GetNewHeadPos(const SnakePixelPos *cur_head, 
                                 TouchDirection dir,
-                                DrawPos *new_head) {
+                                SnakePixelPos *new_head) {
   *new_head = *cur_head;
   switch(dir){
     case UP:
@@ -85,7 +90,7 @@ static void Snake_GetNewHeadPos(const DrawPos *cur_head,
 
 static void Snake_Lengthen(SnakeHandle *handle) {
   RINGBUFF_T *ring_buf = &(handle->snake_container);
-  DrawPos cur_head, new_head;
+  SnakePixelPos cur_head, new_head;
   RingBuffer_GetHead(ring_buf, &cur_head);
   Snake_GetNewHeadPos(&cur_head, handle->move_direct, &new_head);
   RingBuffer_Insert(ring_buf, (void *)&new_head);
@@ -99,15 +104,15 @@ void Snake_Draw(SnakeCtr sc){
   RINGBUFF_T *snake_map = &((SnakeHandle *)sc)->snake_container;
   RingBuffer_Seek(snake_map, RING_BUF_TAIL);
   for (int i = 0; i < RingBuffer_GetCount(snake_map); i++) {
-    DrawPos point;
+    SnakePixelPos point;
     RingBuffer_GetItem(snake_map, (void *)&point);
-    DrawUtil_DrawPoint(&point);
+    DrawUtil_DrawPoint(point.y, point.x);
   }
 }
 
 void Snake_Move(SnakeCtr sc) {
   SnakeHandle *handle = (SnakeHandle *)sc;
-  DrawPos temp;
+  SnakePixelPos temp;
   Snake_Lengthen(handle);
   RingBuffer_Pop(&(handle->snake_container), &temp);
 }
@@ -121,7 +126,7 @@ SnakeCtr Snake_Init(void) {
                   NULL);
   handle->move_direct = RIGHT;
 
-  DrawPos init_pos = {INIT_SNAKE_POS_X, INIT_SNAKE_POS_Y};
+  SnakePixelPos init_pos = {INIT_SNAKE_POS_X, INIT_SNAKE_POS_Y};
   RingBuffer_Insert(&(handle->snake_container), &init_pos);
   Snake_Lengthen(handle);
   Snake_Lengthen(handle);

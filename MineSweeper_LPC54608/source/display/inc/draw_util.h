@@ -10,27 +10,14 @@
 
 #include <stdint.h>
 
-typedef struct _DrawPos {
-  uint16_t x;
-  uint16_t y;
-} DrawPos;
-
 void DrawUtil_DrawFrameDone(void);
 
 uint32_t DrawUtil_InactFrameAddr(void);
 
 /**
- * @Note
- * (x,y)
- *   |
- *   ***
- *   ***
- *   ***
- *  The top-left pixel locate at (pos_x, pos_y).
- * 
- *  @Parameter point_size The width and height of point in pixel.
+ * @Note The (base_row, base_column) locate at the top-left pixel of point.
  */
-void DrawUtil_DrawPoint(const DrawPos *pos);
+void DrawUtil_DrawPoint(uint16_t base_row, uint16_t base_column);
 
 void DrawUtil_FillBackGroundColor(void);
 
