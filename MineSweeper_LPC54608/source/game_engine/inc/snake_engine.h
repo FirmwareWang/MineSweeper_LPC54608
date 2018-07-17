@@ -12,8 +12,9 @@
 #include <stdbool.h>
 
 typedef void *SnakeCtr;
+typedef void (*FetchPointFunc)(uint16_t pos_x, uint16_t pos_y);
 
-SnakeCtr Snake_Init(void);
+SnakeCtr Snake_Init(FetchPointFunc FetchPoint);
 
 void Snake_TransPosToDirect(SnakeCtr sc, 
                             uint16_t touch_pos_x, 

@@ -6,7 +6,6 @@
  */
 
 #include "snake_engine.h"
-#include "draw_util.h"
 #include "ring_buf.h"
 #include "display_config.h"
 #include <stdint.h>
@@ -40,6 +39,7 @@ typedef enum {
 typedef struct _SnakeHandle {
   RINGBUFF_T snake_container;
   TouchDirection move_direct;
+  FetchPointFunc FetchPoint;
 } SnakeHandle;
 
 typedef struct _DrawPos {
@@ -101,12 +101,13 @@ static void Snake_Lengthen(SnakeHandle *handle) {
  * Public
  ******************************************************************************/
 void Snake_Draw(SnakeCtr sc){
-  RINGBUFF_T *snake_map = &((SnakeHandle *)sc)->snake_container;
+  SnakeHandle *handle = (SnakeHandle *)sc;
+  RINGBUFF_T *snake_map = &(handle->snake_container);
   RingBuffer_Seek(snake_map, RING_BUF_TAIL);
   for (int i = 0; i < RingBuffer_GetCount(snake_map); i++) {
     SnakePixelPos point;
     RingBuffer_GetItem(snake_map, (void *)&point);
-    DrawUtil_DrawPoint(point.y, point.x);
+    handle->FetchPoint(point.x, point.y);
   }
 }
 
@@ -117,7 +118,7 @@ void Snake_Move(SnakeCtr sc) {
   RingBuffer_Pop(&(handle->snake_container), &temp);
 }
 
-SnakeCtr Snake_Init(void) {
+SnakeCtr Snake_Init(FetchPointFunc FetchPoint) {
   SnakeHandle *handle = (SnakeHandle *)malloc(sizeof(SnakeHandle) * 1);
   RingBuffer_Init(&(handle->snake_container),
                   (void *) snake_map_buf,
@@ -125,6 +126,7 @@ SnakeCtr Snake_Init(void) {
                   SNAKE_LEN_MAX,
                   NULL);
   handle->move_direct = RIGHT;
+  handle->FetchPoint = FetchPoint;
 
   SnakePixelPos init_pos = {INIT_SNAKE_POS_X, INIT_SNAKE_POS_Y};
   RingBuffer_Insert(&(handle->snake_container), &init_pos);

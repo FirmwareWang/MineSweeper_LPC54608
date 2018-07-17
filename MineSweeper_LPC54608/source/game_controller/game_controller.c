@@ -14,6 +14,11 @@
  * Pravite 
  ******************************************************************************/
 
+// TODO: In fact, drawing is not the task of engine module
+static void GameCtr_FetchPointToDraw(uint16_t x, uint16_t y){
+  DrawUtil_DrawPoint(y, x);
+}
+
 static void GameCtr_UpdateDisplay(SnakeCtr sc) {
   DrawUtil_FillBackGroundColor();
   Snake_Draw(sc);
@@ -27,7 +32,7 @@ static void GameCtr_UpdateDisplay(SnakeCtr sc) {
  ******************************************************************************/
 
 SnakeCtr GameCtr_Init(void) {
-  SnakeCtr sc = Snake_Init();
+  SnakeCtr sc = Snake_Init(GameCtr_FetchPointToDraw);
 
   DrawUtil_FillBackGroundColor();
   Snake_Draw(sc);
