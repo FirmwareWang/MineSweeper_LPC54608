@@ -16,6 +16,8 @@ typedef void (*FetchPointFunc)(uint16_t pos_x, uint16_t pos_y);
 
 SnakeCtr Snake_Init(FetchPointFunc FetchPoint);
 
+void Snake_Restart(SnakeCtr sc);
+
 bool Snake_TakeAction(SnakeCtr sc);
 
 /**

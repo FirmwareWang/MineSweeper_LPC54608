@@ -45,7 +45,13 @@ GameCtrl GameCtr_Init(void) {
   return (GameCtrl)sc;
 }
 
-void GameCtr_Run(GameCtrl gc,
+void GameCtr_Restart(GameCtrl gc) {
+  SnakeCtr sc = (SnakeCtr)gc;
+  Snake_Restart(sc);
+  GameCtr_UpdateDisplay(sc);
+}
+
+bool GameCtr_Run(GameCtrl gc,
                  uint16_t touch_pos_x, 
                  uint16_t touch_pos_y,
                  bool touch_trigger) {
@@ -53,6 +59,10 @@ void GameCtr_Run(GameCtrl gc,
   if (touch_trigger) {
     Snake_TransPosToDirect(sc, touch_pos_x, touch_pos_y);
   }
-  Snake_TakeAction(sc);
+  if (!Snake_TakeAction(sc)) {
+    return false;
+  }
   GameCtr_UpdateDisplay(sc);
+
+  return true;
 }

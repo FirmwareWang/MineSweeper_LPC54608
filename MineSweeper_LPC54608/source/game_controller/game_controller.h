@@ -15,7 +15,9 @@ typedef void *GameCtrl;
 
 GameCtrl GameCtr_Init(void);
 
-void GameCtr_Run(GameCtrl gc,
+void GameCtr_Restart(GameCtrl gc);
+
+bool GameCtr_Run(GameCtrl gc,
                  uint16_t touch_pos_x, 
                  uint16_t touch_pos_y,
                  bool touch_trigger);

@@ -35,16 +35,22 @@ static xTaskHandle lcd_task_handle;
 static void GameController(void *pvParameters) {
   GameCtrl gc = GameCtr_Init();
 
-  uint32_t ulNotifiedValue;
   while(1) {
-    xTaskNotifyWait(0x00,
-                    0xFFFFFFFFUL,
-                    &ulNotifiedValue,
-                    configTICK_RATE_HZ);
+    uint32_t ulNotifiedValue;
+    while(1) {
+      xTaskNotifyWait(0x00,
+                      0xFFFFFFFFUL,
+                      &ulNotifiedValue,
+                      configTICK_RATE_HZ);
 
-    GameCtr_Run(gc, pos.pos_y, pos.pos_x, 
-                (bool)(ulNotifiedValue & POS_READY));
-    vTaskDelay(1);
+      bool game_res = GameCtr_Run(gc, pos.pos_y, pos.pos_x, 
+                      (bool)(ulNotifiedValue & POS_READY));
+      if (!game_res) break;
+
+      vTaskDelay(1);
+    }
+
+    GameCtr_Restart(gc);
   }
 }
 

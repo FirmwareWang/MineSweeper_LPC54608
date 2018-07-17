@@ -58,6 +58,11 @@ static SnakePixelPos snake_map_buf[SNAKE_LEN_MAX];
  * Pravite 
  ******************************************************************************/
 
+static bool Snake_TwoPosIsSame(const SnakePixelPos *a,
+                               const SnakePixelPos *b) {
+  return (a->x == b->x) && (a->y == b->y);
+}
+
 // If the point goes out of image range, rolling it to another side
 static void Snake_GetNewHeadPos(const SnakePixelPos *cur_head, 
                                 MoveDirection dir,
@@ -101,6 +106,18 @@ static void Snake_GenInitMap(SnakeHandle *handle, uint16_t init_len) {
     RingBuffer_Insert(&(handle->snake_container), &new_head);
     head = new_head;
   }
+}
+
+static bool Snake_Suicide(RINGBUFF_T *snake_map, const SnakePixelPos *head) {
+  RingBuffer_Seek(snake_map, RING_BUF_TAIL);
+  for (int i = 0; i < RingBuffer_GetCount(snake_map); i++) {
+    SnakePixelPos point;
+    RingBuffer_GetItem(snake_map, (void *)&point);
+    if (Snake_TwoPosIsSame(&point, head)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 static bool Snake_PermittedTurning(MoveDirection pre, 
@@ -150,6 +167,10 @@ bool Snake_TakeAction(SnakeCtr sc) {
   SnakePixelPos cur_head, new_head, temp;
   RingBuffer_GetHead(ring_buf, &cur_head);
   Snake_GetNewHeadPos(&cur_head, handle->move_direct, &new_head);
+  if(Snake_Suicide(ring_buf, &new_head)) {
+    return false;
+  }
+
   RingBuffer_Insert(ring_buf, (void *)&new_head);
   RingBuffer_Pop(&(handle->snake_container), &temp);
 
@@ -170,6 +191,13 @@ SnakeCtr Snake_Init(FetchPointFunc FetchPoint) {
   Snake_GenInitMap(handle, INIT_SNAKE_LEN);
 
   return (SnakeCtr)handle;
+}
+
+void Snake_Restart(SnakeCtr sc) {
+  SnakeHandle *handle = (SnakeHandle *)sc;
+  RingBuffer_Flush(&handle->snake_container);
+  handle->move_direct = RIGHT;
+  Snake_GenInitMap(handle, INIT_SNAKE_LEN);
 }
 
 void Snake_TransPosToDirect(SnakeCtr sc, 
