@@ -38,10 +38,10 @@ typedef enum {
   RANGE_OUT,
 } TouchDirection;
 
-typedef struct _SnakeStatus {
+typedef struct _SnakeHandle {
   RINGBUFF_T snake_container;
   TouchDirection move_direct;
-} SnakeStatus;
+} SnakeHandle;
 
 /*******************************************************************************
  * Globals
@@ -81,7 +81,7 @@ static DrawPos Snake_NextHeadPoint(const DrawPos *cur_head,
   return next_head;
 }
 
-static void Snake_Lengthen(SnakeStatus *handle) {
+static void Snake_Lengthen(SnakeHandle *handle) {
   RINGBUFF_T *ring_buf = &(handle->snake_container);
   DrawPos cur_head;
   RingBuffer_GetHead(ring_buf, &cur_head);
@@ -89,7 +89,7 @@ static void Snake_Lengthen(SnakeStatus *handle) {
   RingBuffer_Insert(ring_buf, &new_head);
 }
 
-static void Snake_Move(SnakeStatus *handle) {
+static void Snake_Move(SnakeHandle *handle) {
   DrawPos temp;
   Snake_Lengthen(handle);
   RingBuffer_Pop(&(handle->snake_container), &temp);
@@ -117,8 +117,8 @@ static void Snake_UpdateDisplay(RINGBUFF_T *snake_map) {
  * Public
  ******************************************************************************/
 
-SnakeHandle Snake_Init(void) {
-  SnakeStatus *handle = (SnakeStatus *)malloc(sizeof(SnakeStatus) * 1);
+SnakeCtr Snake_Init(void) {
+  SnakeHandle *handle = (SnakeHandle *)malloc(sizeof(SnakeHandle) * 1);
   RingBuffer_Init(&(handle->snake_container),
                   (void *) snake_map_buf,
                   sizeof(snake_map_buf[0]),
@@ -138,10 +138,10 @@ SnakeHandle Snake_Init(void) {
 
   DrawUtil_DrawFrameDone();
 
-  return (SnakeHandle)handle;
+  return (SnakeCtr)handle;
 }
 
-void Snake_TransPosToDirect(SnakeHandle sh, 
+void Snake_TransPosToDirect(SnakeCtr sc, 
                             uint16_t touch_pos_x, 
                             uint16_t touch_pos_y) {
  /*
@@ -169,18 +169,18 @@ void Snake_TransPosToDirect(SnakeHandle sh,
      |                 |                                      |                |
      +-------------------------------------------------------------------------+
   */ 
-  SnakeStatus *stat = (SnakeStatus *)sh;
+  SnakeHandle *handle = (SnakeHandle *)sc;
 
-  stat->move_direct =  
+  handle->move_direct =  
     (touch_pos_x < IMG_WIDTH / 4)     ? LEFT : 
     (touch_pos_x > IMG_WIDTH * 3 / 4) ? RIGHT : 
     (touch_pos_y < IMG_HEIGHT / 2)    ? UP : 
     (touch_pos_y > IMG_HEIGHT / 2)    ? DOWN : RANGE_OUT;
 }
 
-void Snake_ControlPoint(SnakeHandle sh) {
-  SnakeStatus *stat = (SnakeStatus *)sh;
-  Snake_Move(stat);
-  Snake_UpdateDisplay(&(stat->snake_container));
+void Snake_ControlPoint(SnakeCtr sc) {
+  SnakeHandle *handle = (SnakeHandle *)sc;
+  Snake_Move(handle);
+  Snake_UpdateDisplay(&(handle->snake_container));
 }
 

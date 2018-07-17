@@ -33,7 +33,7 @@ static xTaskHandle lcd_task_handle;
  ******************************************************************************/
 
 static void GameController(void *pvParameters) {
-  SnakeHandle sh = Snake_Init();
+  SnakeCtr sh = Snake_Init();
 
   uint32_t ulNotifiedValue;
   while(1) {
