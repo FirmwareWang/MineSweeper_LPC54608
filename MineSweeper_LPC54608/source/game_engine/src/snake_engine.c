@@ -9,6 +9,7 @@
 #include "ring_buf.h"
 #include "display_config.h"
 #include "fsl_rng.h"
+#include "FreeRTOS.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -199,7 +200,8 @@ bool Snake_TakeAction(SnakeCtr sc) {
 
 SnakeCtr Snake_Init(FetchPointFunc FetchPoint) {
   // TODO: FreeRTOS Heap may be a better choise.
-  SnakeHandle *handle = (SnakeHandle *)malloc(sizeof(SnakeHandle) * 1);
+  SnakeHandle *handle = 
+    (SnakeHandle *)pvPortMalloc(sizeof(SnakeHandle) * 1);
   RingBuffer_Init(&(handle->snake_container),
                   (void *) snake_map_buf,
                   sizeof(snake_map_buf[0]),
