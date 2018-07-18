@@ -41,12 +41,10 @@ static uint8_t inactive_buf_idx = 1;
 /*******************************************************************************
  * Public
  ******************************************************************************/
-void DrawUtil_DrawFrameDone(void) {
+uint32_t DrawUtil_DrawFrameDone(void) {
+  uint32_t addr = frame_buf_addr[inactive_buf_idx];
   inactive_buf_idx ^= 1U;
-}
-
-uint32_t DrawUtil_InactFrameAddr(void) {
-  return frame_buf_addr[inactive_buf_idx];
+  return addr;
 }
 
 static void DrawUtil_Draw2BPPLine(uint8_t *line, uint16_t start, 

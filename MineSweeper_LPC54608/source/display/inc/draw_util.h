@@ -10,9 +10,7 @@
 
 #include <stdint.h>
 
-void DrawUtil_DrawFrameDone(void);
-
-uint32_t DrawUtil_InactFrameAddr(void);
+uint32_t DrawUtil_DrawFrameDone(void);
 
 /**
  * @Note The (base_row, base_column) locate at the top-left pixel of point.

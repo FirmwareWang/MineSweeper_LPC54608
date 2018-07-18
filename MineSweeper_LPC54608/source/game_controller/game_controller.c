@@ -23,9 +23,7 @@ static void GameCtr_FetchPointToDraw(uint16_t x, uint16_t y){
 static void GameCtr_UpdateDisplay(SnakeCtr sc) {
   DrawUtil_FillBackGroundColor();
   Snake_Draw(sc);
-  LCD_Update(DrawUtil_InactFrameAddr());
-
-  DrawUtil_DrawFrameDone();
+  LCD_Update(DrawUtil_DrawFrameDone());
 }
 
 /*******************************************************************************
@@ -38,9 +36,7 @@ GameCtrl GameCtr_Init(void) {
   DrawUtil_FillBackGroundColor();
   Snake_Draw(sc);
 
-  LCD_Setup(DrawUtil_InactFrameAddr());
-
-  DrawUtil_DrawFrameDone();
+  LCD_Setup(DrawUtil_DrawFrameDone());
 
   return (GameCtrl)sc;
 }
