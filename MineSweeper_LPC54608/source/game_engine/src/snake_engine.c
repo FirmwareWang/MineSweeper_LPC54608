@@ -26,7 +26,7 @@
 #define SNAKE_POINTS_STEP_PIXEL \
   (SNAKE_POINTS_PITCH_PIXEL + POINT_SIZE_PIXEL)
 #define ROUND_TO_MULTI_PTS_STEP(val) \
-  (val - (val % SNAKE_POINTS_STEP_PIXEL))
+  ((val / SNAKE_POINTS_STEP_PIXEL) * SNAKE_POINTS_STEP_PIXEL)
 // the buffer length should be the 2^n
 #define SNAKE_LEN_MAX 1024
 
